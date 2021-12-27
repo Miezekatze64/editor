@@ -1,4 +1,4 @@
-### Editor
+# Editor
 A simple texteditor written in c.
 
 ## Dependencies
