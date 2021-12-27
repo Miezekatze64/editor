@@ -87,7 +87,25 @@ void setcursor() {
 }
 
 void del() {
-    
+	if (pos <= 0) return;
+	char *new_array = malloc((strlen(text)-1) * sizeof(char));
+
+	for (int i = 0; i < strlen(new_array)+1; i++) {
+		if (i < pos-1) {
+			new_array[i] = text[i];
+		} else if (i >= pos-1) {
+			new_array[i] = text[i+1];
+		}
+	}
+
+	new_array[strlen(new_array)] = '\0';
+	free(text);
+	text = new_array;
+	pos--;
+}
+
+void up() {
+
 }
 
 void handle_key(int key) {
@@ -104,7 +122,7 @@ void handle_key(int key) {
 	} else if(key == KEY_RIGHT) {
 		pos++;
 	} else if (key == KEY_UP) {
-		//	if (x++ == 
+		up();
 	} else if (key == KEY_DOWN) {
 	
 	} else {
