@@ -2,7 +2,7 @@
 A simple texteditor written in c.
 
 ## Dependencies
-- ```ncurses``` libraray install by running:
+- ```ncurses``` libraray, install it by running:
 ```
 apt install libncurses5-dev
 ```
