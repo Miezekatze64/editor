@@ -105,7 +105,34 @@ void del() {
 }
 
 void up() {
+	int chars = 0;
+	while (pos > 0 && text[pos] != '\n') {
+		pos--;
+		chars++;
+	}
+	pos--;
+	while (pos > 0 && text[pos] != '\n') {
+		pos--;
+	}
+	if (pos == 0) chars--;
+	pos += chars;
+}
 
+void down() {
+	int chars = 0;
+	while (pos >= 0 && text[pos] != '\n') {
+		pos--;
+		chars++;
+	}
+	pos++;
+	while (pos < strlen(text) && text[pos] != '\n') {
+		pos++;
+	}
+
+	if (pos == strlen(text)-1) chars++;
+
+	pos += chars;
+	if (pos > strlen(text)) pos -= chars+1;
 }
 
 void handle_key(int key) {
@@ -124,7 +151,7 @@ void handle_key(int key) {
 	} else if (key == KEY_UP) {
 		up();
 	} else if (key == KEY_DOWN) {
-	
+		down();
 	} else {
 	
 	}
