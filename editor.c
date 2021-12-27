@@ -56,6 +56,11 @@ void handle_key(int key) {
 		} else if (y > 0) {
             mvln(-1);
         }
+    } else if(key == KEY_RIGHT) {
+        if (!(x++ < ln_end())) {
+           y++;
+           x = 0;
+        }
 	} else if (key == KEY_UP) {
     	//	if (x++ == 
 	} else if (key == KEY_DOWN) {
