@@ -10,6 +10,8 @@ volatile sig_atomic_t stop;
 WINDOW* win;
 
 FILE* logfile;
+FILE* file;
+bool hasfile = false;
 
 char *text;
 
@@ -20,11 +22,60 @@ void handle_key(int key);
 
 
 int main(int argc, char **argv) {
+	if (argc > 1) {
+		if (argv[1][0] != '-') {
+			//parse as file
+			char* str = argv[1];
+			file = fopen(str, "rb");
+
+			fseek(file, 0, SEEK_END);
+			long fsize = ftell(file);
+			fseek(file, 0, SEEK_SET);  /* same as rewind(f); */
+			
+			text = malloc(fsize + 1);
+			printf("Size: %d\n", (int)fsize);
+
+			fread(text, fsize, 1, file);
+			fclose(file);
+			
+			text[fsize] = '\0';
+
+			for (int i = 0; i < strlen(text); i++) {
+				if (text[i] < 4) {
+					text[i] = '?';
+				} else if(text[i] == '\t') {
+//					text[i] = ' ';
+					//TODO: replace tabs with 4 spaces instead of 1
+					/*
+					char *new_array = malloc(strlen(text)+5 * sizeof(char));
+					new_array[strlen(text)+5] = '\0';
+
+					for (int j = 0; j < strlen(new_array)+4; j++) {
+						if (j < i) {
+							new_array[j] = text[j];
+						} else if (j > i+6) {
+							new_array[j] = text[j-4];
+						} else {
+							new_array[j] = ' ';
+						}
+					}
+
+					text = new_array;*/
+				}
+			}
+
+			hasfile = true;
+		} else {
+			printf("Argument %s not found", argv[0]);
+		}
+	}
 	
 	logfile = fopen("file.log", "w");
-    
-	text = malloc(1);
-	text[0] = '\0';
+
+    if (!hasfile) {
+		text = malloc(1);
+		text[0] = '\0';
+	}
 
 	if (logfile == NULL) {
 		printf("Error opening file!\n");
@@ -34,12 +85,12 @@ int main(int argc, char **argv) {
 	win = initscr();
 	noecho();
 	cbreak();
-	
 	keypad(win, true);
 	
 	while(!stop) {
 		clear();
 		printw(text, 0, 0);
+		
 		setcursor();
 		handle_key(getch());
 		refresh();
