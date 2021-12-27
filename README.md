@@ -1,13 +1,13 @@
-#editor
+### Editor
 A simple texteditor written in c.
 
-##Dependencies
+## Dependencies
 - ```ncurses``` libraray install by running:
 ```
 apt install libncurses5-dev
 ```
 
-#Compile & Run
+## Compile & Run
 ```
 make && ./editor
 ```
