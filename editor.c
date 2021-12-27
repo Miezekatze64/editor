@@ -135,6 +135,19 @@ void down() {
 	if (pos > strlen(text)) pos -= chars+1;
 }
 
+void end() {
+	while (pos < strlen(text) && text[pos] != '\n') {
+		pos++;
+	}
+}
+
+void begin() {
+	while (pos > 0 && text[pos] != '\n') {
+		pos--;
+	}
+	if (pos > 0) pos++;
+}
+
 void handle_key(int key) {
 	char ch = (char)key;
 	
@@ -145,13 +158,17 @@ void handle_key(int key) {
 	} else if(key == KEY_BACKSPACE) {
 		del();
 	} else if(key == KEY_LEFT) {
-		pos--;
+		if (pos > 0) pos--;
 	} else if(key == KEY_RIGHT) {
-		pos++;
+		if(pos < strlen(text)) pos++;
 	} else if (key == KEY_UP) {
 		up();
 	} else if (key == KEY_DOWN) {
 		down();
+	} else if (key == KEY_END) {
+		end();
+	} else if (key == KEY_HOME) {
+		begin();
 	} else {
 	
 	}
