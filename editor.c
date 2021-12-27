@@ -11,17 +11,18 @@ WINDOW* win;
 int ln_end() {
 	int mx, my;
 	getmaxyx(win, my, mx);
-	int lx;
-	lx = mx;
+
+    mx--;
+
+    move(y, mx);
+
 	while ((inch() & A_CHARTEXT) == ' ') {
-		lx = mx--;
-		move(y, lx);
-		if (lx == -1) {
-			break;
-		}
+		mx--;
+		move(y, mx);
+        if (mx < 0) break;
 	}
-	lx++;
-    return lx;
+	mx++;
+    return mx;
 }
 
 void mvln(int count) {
@@ -54,7 +55,6 @@ void handle_key(int key) {
             move(y, x);
 		} else if (y > 0) {
             mvln(-1);
-            printw("HERE", 100, 100);
         }
 	} else if (key == KEY_UP) {
     	//	if (x++ == 
