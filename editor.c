@@ -6,6 +6,8 @@
 #include <signal.h>
 
 int pos = 0;
+int line_off = 0;
+
 volatile sig_atomic_t stop;
 WINDOW* win;
 
@@ -19,6 +21,7 @@ void add(char c);
 void setcursor();
 void del();
 void handle_key(int key);
+char* getText();
 
 
 int main(int argc, char **argv) {
@@ -39,12 +42,6 @@ int main(int argc, char **argv) {
 			fclose(file);
 			
 			text[fsize] = '\0';
-
-			for (int i = 0; i < strlen(text); i++) {
-/*				if (text[i] < 4) {
-					text[i] = '?';
-				}*/
-			}
 
 			hasfile = true;
 		} else {
@@ -72,7 +69,7 @@ int main(int argc, char **argv) {
 	
 	while(!stop) {
 		clear();
-		printw(text, 0, 0);
+		printw(getText(), 0, 0);
 		
 		setcursor();
 		handle_key(getch());
@@ -82,6 +79,36 @@ int main(int argc, char **argv) {
 	
 	fclose(logfile);
 	return 0;
+}
+
+char *getText() {
+	size_t off = 0;
+	for (int i = 0; i < line_off; i++) {
+		for (int i = off; i < strlen(text); i++) {
+			if (text[i] == '\n') {
+				off = i+1;
+				fprintf(logfile, "offset: %ld\n", off);
+				break;
+			}
+		}
+	}
+	
+	fflush(logfile);
+	
+	if (off >= strlen(text)) {
+		line_off--;
+		return getText();
+	}
+	
+	if (off <= 0) {
+		line_off++;
+		return getText();
+	}
+	
+	char *t = malloc(strlen(text)-off+1);
+	memcpy(t, text+off, strlen(text)-off+1);
+	
+	return t;
 }
 
 void add(char c) {
@@ -220,6 +247,10 @@ void handle_key(int key) {
 	} else if (key == KEY_DC) {
 		pos++;
 		del();
+	} else if (key == KEY_NPAGE) {
+		line_off++;
+	} else if (key == KEY_PPAGE) {
+		line_off--;
 	} else {
 	
 	}
