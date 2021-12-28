@@ -32,7 +32,8 @@ char* getText();
 void escape();
 int get_offset();
 void mv_line(size_t count);
-
+void setempty();
+int *cursorpos();
 
 int main(int argc, char **argv) {
 	if (argc > 1) {
@@ -75,10 +76,16 @@ int main(int argc, char **argv) {
     start_color();
     init_pair(1, COLOR_WHITE, COLOR_BLACK);	//standard text
     init_pair(2, COLOR_GREEN, COLOR_BLACK);	//messages at screen bottom
+    init_pair(3, COLOR_RED, COLOR_BLACK);	//end of file
 	
 	while(!stop) {
 		erase();
+		attron(COLOR_PAIR(3));
+		attron(A_BOLD);
+		setempty();
 		attron(COLOR_PAIR(1));
+		attroff(A_BOLD);
+		
 		char *ptr = getText();
 		printw("%s", ptr, 0, 0);
 		free(ptr);
@@ -101,6 +108,16 @@ int main(int argc, char **argv) {
 	clear();
 	endwin();
 	return 0;
+}
+
+void setempty() {
+	int x, y;
+	getmaxyx(win, y, x);
+	x++; //avoid unused warnings...
+	for (int i = 0; i < y; i++) {
+		if (cursorpos()[0] < i) mvprintw(i, 0, "%s", "~");
+	}
+	move(0, 0);
 }
 
 char *getText() {
