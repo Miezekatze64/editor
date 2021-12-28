@@ -19,6 +19,7 @@ WINDOW* win;
 
 FILE *file;
 char *filename;
+char *message;
 bool hasfile = false;
 
 char *text;
@@ -71,16 +72,33 @@ int main(int argc, char **argv) {
 	set_tabsize(4);
 	keypad(win, true);
 	
+    start_color();
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);	//standard text
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);	//messages at screen bottom
+	
 	while(!stop) {
-		clear();
+		erase();
+		attron(COLOR_PAIR(1));
 		char *ptr = getText();
 		printw("%s", ptr, 0, 0);
 		free(ptr);
+		
+		int y, x;
+		x++;
+		getmaxyx(win, y, x);
+		if (message != NULL) {
+			move(y-1, 0);
+			clrtoeol();
+			attron(COLOR_PAIR(2));
+			mvprintw(y-1, 0, "%s", message);
+			message = NULL;
+		}
 		
 		setcursor();
 		handle_key(getch());
 		refresh();
 	}
+	clear();
 	endwin();
 	return 0;
 }
@@ -237,12 +255,16 @@ void save() {
 	file = fopen(filename, "w");
 	fprintf(file, "%s\n", text);
 	fclose(file);
+	
+	char *str = (char *)malloc(255 * sizeof(char));
+	sprintf(str, "Saved as %s", filename);
+	message = str;
 }
 
 void handle_key(int key) {
 	char ch = (char)key;
 
-	if (isprint(key)) {
+	if (isprint(key) || key == '\t') {
 		add(ch);
 		return;
 	}
@@ -282,12 +304,16 @@ void handle_key(int key) {
 		del();
 		break;
 	case KEY_NPAGE:
-		down();
-		mv_line(1);
+        for(int i = 0; i < 5; i++) {
+    		down();
+        }
+		mv_line(5);
 		break;
 	case KEY_PPAGE:
-		up();
-		mv_line(-1);
+        for (int i = 0; i < 5; i++) {
+    		up();
+        }
+		mv_line(-5);
 		break;
 	default:
 		break;
