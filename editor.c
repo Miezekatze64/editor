@@ -217,6 +217,9 @@ void handle_key(int key) {
 		end();
 	} else if (key == KEY_HOME) {
 		begin();
+	} else if (key == KEY_DC) {
+		pos++;
+		del();
 	} else {
 	
 	}
