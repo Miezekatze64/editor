@@ -24,6 +24,7 @@ bool hasfile = false;
 bool save_as = false;
 
 char *text;
+char **syntax1;
 
 void add(char c);
 void setcursor();
@@ -35,6 +36,7 @@ int get_offset();
 void mv_line(size_t count);
 void setempty();
 int *cursorpos();
+void loadsyntax();
 
 int main(int argc, char **argv) {
 	if (argc > 1) {
@@ -59,10 +61,13 @@ int main(int argc, char **argv) {
 				hasfile = true;
 			}
 		} else {
-			printf("Argument %s not found", argv[0]);
+			printf("Argument %s not found!", argv[0]);
+			exit(1);
 		}
 	}
-
+	
+	loadsyntax();
+	
     if (!hasfile) {
 		text = malloc(1);
 		text[0] = '\0';
@@ -109,6 +114,68 @@ int main(int argc, char **argv) {
 	clear();
 	endwin();
 	return 0;
+}
+
+void loadsyntax() {
+	if (filename == NULL) {
+		return;
+	}
+	
+	
+	char *lang = malloc(1);
+	lang[0] = '\0';
+	for (int i = strlen(filename); i > 0; i--) {
+		if (filename[i] == '.') {
+			lang = malloc(strlen(filename)-i);
+			memcpy(lang, filename+i+1, strlen(filename)-i);
+			lang[strlen(filename)-i] = '\0';
+			break;
+		}
+	}
+
+	if (strlen(lang) == 0) return;
+	
+	char *langfile = malloc(strlen(lang)+7);
+	memcpy(langfile, lang, strlen(lang));
+	memcpy(langfile+strlen(lang), ".syntax", 7);
+	
+	langfile[strlen(lang)+7] = '\0';
+
+	char *input = malloc(2);
+	
+	if(access(langfile , F_OK ) == 0) {
+		FILE *file2;
+		file2 = fopen(langfile, "rwb");
+		fseek(file2, 0, SEEK_END);
+		long fsize = ftell(file2);
+		fseek(file2, 0, SEEK_SET);
+		
+		input = malloc(fsize + 1);
+		fread(input, fsize, 1, file2);
+		fclose(file2);
+		input[fsize] = '\0';
+	} else {
+		perror("File error");
+	}
+		
+	free(lang);
+	free(langfile);
+	
+	char *working = malloc(1);
+	int index = 0;
+	int synindex = 0;
+	for (int i = 0; i < strlen(input); i++) {
+		if (working[i] != '|') {
+			working[index] = input[i];
+			index++;
+		} else {
+			working[index] = '\0';
+			index = 0;
+			memcpy(syntax1[synindex], working, strlen(working));
+			free(working);
+			working = malloc(1);
+		}
+	}
 }
 
 void setempty() {
