@@ -24,6 +24,7 @@ void handle_key(int key);
 char* getText();
 void escape();
 int get_offset();
+void mv_line(size_t count);
 
 
 int main(int argc, char **argv) {
@@ -113,7 +114,7 @@ void add(char c) {
 	pos++;
 }
 
-void setcursor() {
+int *cursorpos() {
 	int x = 0;
 	int y = 0;
 	int i;
@@ -128,7 +129,15 @@ void setcursor() {
 				x++;
 		}
 	}
-	move(y, x);
+	int *rt = malloc(2);
+	rt[0] = y;
+	rt[1] = x;
+	return rt;
+}
+
+void setcursor() {
+	int *pos = cursorpos();
+	move(pos[0], pos[1]);
 	fflush(logfile);
 }
 
@@ -168,11 +177,12 @@ void up() {
 			if (text[pos] == '\n') break;
 		} 
 	}
+	if (cursorpos()[0] <= 0) mv_line(-1);
 }
 
 void down() {
 	int chars = 0;
-	if (pos < strlen(text))  {
+	if (pos <= strlen(text))  {
 		do {
 			pos--;
 			chars++;
@@ -181,15 +191,16 @@ void down() {
 		while (pos < strlen(text) && text[pos] != '\n') {
 			pos++;
 		}
-	
-		if (pos == strlen(text)-1) chars++;
-	
 		for (int i = 0; i < chars; i++) {
 			pos++;
 			if (text[pos] == '\n') break;
 		}
-		if (pos > strlen(text)) pos -= chars+1;
 	}
+	
+	int y, x;
+	getmaxyx(win, y, x);
+	x++;
+	if (cursorpos()[0] > y) mv_line(1);
 }
 
 void end() {
@@ -219,9 +230,7 @@ int get_offset() {
 }
 
 void mv_line(size_t count) {
-//	pos -= get_offset();
 	line_off += count;
-//	pos += get_offset();
 }
 
 void handle_key(int key) {
@@ -249,8 +258,10 @@ void handle_key(int key) {
 		pos++;
 		del();
 	} else if (key == KEY_NPAGE) {
+		down();
 		mv_line(1);
 	} else if (key == KEY_PPAGE) {
+		up();
 		mv_line(-1);
 	} else {
 	
