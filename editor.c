@@ -42,20 +42,20 @@ int main(int argc, char **argv) {
 			
 			filename = malloc(strlen(str)+1);
 			memcpy(filename, str, strlen(str)+1);
-			file = fopen(str, "rb");
-
-			fseek(file, 0, SEEK_END);
-			long fsize = ftell(file);
-			fseek(file, 0, SEEK_SET);  /* same as rewind(f); */
 			
-			text = malloc(fsize + 1);
-
-			fread(text, fsize, 1, file);
-			fclose(file);
-			
-			text[fsize] = '\0';
-
-			hasfile = true;
+			if(access( filename, F_OK ) == 0) {
+				file = fopen(str, "rwb");
+				fseek(file, 0, SEEK_END);
+				long fsize = ftell(file);
+				fseek(file, 0, SEEK_SET);
+				
+				text = malloc(fsize + 1);
+				fread(text, fsize, 1, file);
+				fclose(file);
+				text[fsize] = '\0';
+	
+				hasfile = true;
+			}
 		} else {
 			printf("Argument %s not found", argv[0]);
 		}
@@ -252,7 +252,7 @@ void mv_line(size_t count) {
 }
 
 void save() {
-	file = fopen(filename, "w");
+	file = fopen(filename, "wa");
 	fprintf(file, "%s\n", text);
 	fclose(file);
 	
