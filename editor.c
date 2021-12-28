@@ -309,7 +309,8 @@ void handle_key(int key) {
 				str[length-1] = '\0';
 				
 				memcpy(filename, str, length);
-				memcpy(message, filename, strlen(filename));
+				message = "Save as: ";
+				memcpy(message+9, filename, strlen(filename));
 			}
 			return;
 		}
@@ -317,7 +318,7 @@ void handle_key(int key) {
 		int length;
 		if (message == NULL) {
 			length = 2;
-			message = malloc(2);
+			message = malloc(11);
 		} else {
 			length = strlen(message)+2;
 		}
@@ -335,8 +336,8 @@ void handle_key(int key) {
 		} else {
 			memcpy(filename+strlen(filename), str, length);
 		}
-		
-		memcpy(message, filename, strlen(filename));
+//		message = "Save as: ";
+		memcpy(message+9, filename, strlen(filename));
 	    return;
 	}
 
