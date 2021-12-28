@@ -1,4 +1,4 @@
 *.swp
 editor
-
+*.log
 file.log

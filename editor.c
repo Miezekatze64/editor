@@ -22,6 +22,8 @@ void setcursor();
 void del();
 void handle_key(int key);
 char* getText();
+void escape();
+int get_offset();
 
 
 int main(int argc, char **argv) {
@@ -69,7 +71,9 @@ int main(int argc, char **argv) {
 	
 	while(!stop) {
 		clear();
-		printw(getText(), 0, 0);
+		char *ptr = getText();
+		printw("%s", ptr, 0, 0);
+		free(ptr);
 		
 		setcursor();
 		handle_key(getch());
@@ -82,29 +86,7 @@ int main(int argc, char **argv) {
 }
 
 char *getText() {
-	size_t off = 0;
-	for (int i = 0; i < line_off; i++) {
-		for (int i = off; i < strlen(text); i++) {
-			if (text[i] == '\n') {
-				off = i+1;
-				fprintf(logfile, "offset: %ld\n", off);
-				break;
-			}
-		}
-	}
-	
-	fflush(logfile);
-	
-	if (off >= strlen(text)) {
-		line_off--;
-		return getText();
-	}
-	
-	if (off <= 0) {
-		line_off++;
-		return getText();
-	}
-	
+	size_t off = get_offset();
 	char *t = malloc(strlen(text)-off+1);
 	memcpy(t, text+off, strlen(text)-off+1);
 	
@@ -112,7 +94,7 @@ char *getText() {
 }
 
 void add(char c) {
-	char *new_array = malloc(strlen(text)+2 * sizeof(char));
+	char *new_array = malloc(strlen(text)+3 * sizeof(char));
 	new_array[strlen(text)+2] = '\0';
 	
 	for (int i = 0; i < strlen(new_array)+1; i++) {
@@ -135,7 +117,7 @@ void setcursor() {
 	int x = 0;
 	int y = 0;
 	int i;
-	for (i = 0; i < pos; i++) {
+	for (i = get_offset(); i < pos; i++) {
 		if (text[i] == '\n') {
 			y++;
 			x = 0;
@@ -223,6 +205,25 @@ void begin() {
 	if (pos > 0) pos++;
 }
 
+int get_offset() {
+	size_t off = 0;
+	for (int i = 0; i < line_off; i++) {
+		for (int i = off; i < strlen(text); i++) {
+			if (text[i] == '\n') {
+				off = i+1;
+				break;
+			}
+		}
+	}
+	return off;
+}
+
+void mv_line(size_t count) {
+//	pos -= get_offset();
+	line_off += count;
+//	pos += get_offset();
+}
+
 void handle_key(int key) {
 	char ch = (char)key;
 	
@@ -248,9 +249,9 @@ void handle_key(int key) {
 		pos++;
 		del();
 	} else if (key == KEY_NPAGE) {
-		line_off++;
+		mv_line(1);
 	} else if (key == KEY_PPAGE) {
-		line_off--;
+		mv_line(-1);
 	} else {
 	
 	}
