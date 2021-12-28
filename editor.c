@@ -41,27 +41,9 @@ int main(int argc, char **argv) {
 			text[fsize] = '\0';
 
 			for (int i = 0; i < strlen(text); i++) {
-				if (text[i] < 4) {
+/*				if (text[i] < 4) {
 					text[i] = '?';
-				} else if(text[i] == '\t') {
-//					text[i] = ' ';
-					//TODO: replace tabs with 4 spaces instead of 1
-					/*
-					char *new_array = malloc(strlen(text)+5 * sizeof(char));
-					new_array[strlen(text)+5] = '\0';
-
-					for (int j = 0; j < strlen(new_array)+4; j++) {
-						if (j < i) {
-							new_array[j] = text[j];
-						} else if (j > i+6) {
-							new_array[j] = text[j-4];
-						} else {
-							new_array[j] = ' ';
-						}
-					}
-
-					text = new_array;*/
-				}
+				}*/
 			}
 
 			hasfile = true;
@@ -85,6 +67,7 @@ int main(int argc, char **argv) {
 	win = initscr();
 	noecho();
 	cbreak();
+	set_tabsize(4);
 	keypad(win, true);
 	
 	while(!stop) {
@@ -130,7 +113,10 @@ void setcursor() {
 			y++;
 			x = 0;
 		} else {
-			x++;
+			if (text[i] == '\t')
+				x+= 4;
+			else
+				x++;
 		}
 	}
 	move(y, x);
@@ -139,7 +125,7 @@ void setcursor() {
 
 void del() {
 	if (pos <= 0) return;
-	char *new_array = malloc((strlen(text)-1) * sizeof(char));
+	char *new_array = malloc((strlen(text)) * sizeof(char));
 
 	for (int i = 0; i < strlen(new_array)+1; i++) {
 		if (i < pos-1) {
@@ -157,33 +143,44 @@ void del() {
 
 void up() {
 	int chars = 0;
-	while (pos > 0 && text[pos] != '\n') {
+	if (pos > 0) {
+		do {
+			pos--;
+			chars++;
+		} while (pos > 0 && text[pos] != '\n');
 		pos--;
-		chars++;
+		while (pos > 0 && text[pos] != '\n') {
+			pos--;
+		}
+		if (pos == 0) chars--;
+		
+		for (int i = 0; i < chars; i++) {
+			pos++;
+			if (text[pos] == '\n') break;
+		} 
 	}
-	pos--;
-	while (pos > 0 && text[pos] != '\n') {
-		pos--;
-	}
-	if (pos == 0) chars--;
-	pos += chars;
 }
 
 void down() {
 	int chars = 0;
-	while (pos >= 0 && text[pos] != '\n') {
-		pos--;
-		chars++;
-	}
-	pos++;
-	while (pos < strlen(text) && text[pos] != '\n') {
+	if (pos < strlen(text))  {
+		do {
+			pos--;
+			chars++;
+		} while (pos >= 0 && text[pos] != '\n');
 		pos++;
+		while (pos < strlen(text) && text[pos] != '\n') {
+			pos++;
+		}
+	
+		if (pos == strlen(text)-1) chars++;
+	
+		for (int i = 0; i < chars; i++) {
+			pos++;
+			if (text[pos] == '\n') break;
+		}
+		if (pos > strlen(text)) pos -= chars+1;
 	}
-
-	if (pos == strlen(text)-1) chars++;
-
-	pos += chars;
-	if (pos > strlen(text)) pos -= chars+1;
 }
 
 void end() {
