@@ -17,8 +17,8 @@ int line_off = 0;
 volatile sig_atomic_t stop;
 WINDOW* win;
 
-FILE* logfile;
-FILE* file;
+FILE *file;
+char *filename;
 bool hasfile = false;
 
 char *text;
@@ -38,6 +38,9 @@ int main(int argc, char **argv) {
 		if (argv[1][0] != '-') {
 			//parse as file
 			char* str = argv[1];
+			
+			filename = malloc(strlen(str)+1);
+			memcpy(filename, str, strlen(str)+1);
 			file = fopen(str, "rb");
 
 			fseek(file, 0, SEEK_END);
@@ -45,7 +48,6 @@ int main(int argc, char **argv) {
 			fseek(file, 0, SEEK_SET);  /* same as rewind(f); */
 			
 			text = malloc(fsize + 1);
-			printf("Size: %d\n", (int)fsize);
 
 			fread(text, fsize, 1, file);
 			fclose(file);
@@ -57,22 +59,15 @@ int main(int argc, char **argv) {
 			printf("Argument %s not found", argv[0]);
 		}
 	}
-	
-	logfile = fopen("file.log", "w");
 
     if (!hasfile) {
 		text = malloc(1);
 		text[0] = '\0';
 	}
-
-	if (logfile == NULL) {
-		printf("Error opening file!\n");
-		exit(1);
-	}
-	
+		
 	win = initscr();
 	noecho();
-	cbreak();
+	raw();
 	set_tabsize(4);
 	keypad(win, true);
 	
@@ -87,8 +82,6 @@ int main(int argc, char **argv) {
 		refresh();
 	}
 	endwin();
-	
-	fclose(logfile);
 	return 0;
 }
 
@@ -144,7 +137,6 @@ int *cursorpos() {
 void setcursor() {
 	int *pos = cursorpos();
 	move(pos[0], pos[1]);
-	fflush(logfile);
 }
 
 void del() {
@@ -241,6 +233,12 @@ void mv_line(size_t count) {
 	line_off += count;
 }
 
+void save() {
+	file = fopen(filename, "w");
+	fprintf(file, "%s\n", text);
+	fclose(file);
+}
+
 void handle_key(int key) {
 	char ch = (char)key;
 
@@ -251,9 +249,10 @@ void handle_key(int key) {
 	
 	switch(key) {
 	case CTRL('s'):
-		fprintf(logfile, "CTRL+S");
-		fflush(logfile);
+		save();
 		return;
+	case CTRL('c'):
+		stop = 1;
 	case '\n':
 		add('\n');
 		break;
