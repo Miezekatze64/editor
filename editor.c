@@ -21,6 +21,7 @@ FILE *file;
 char *filename;
 char *message;
 bool hasfile = false;
+bool save_as = false;
 
 char *text;
 
@@ -92,7 +93,7 @@ int main(int argc, char **argv) {
 		
 		int y, x;
 		x++;
-		getmaxyx(win, y, x);
+		getmaxyx(win, y, x); 
 		if (message != NULL) {
 			move(y-1, 0);
 			clrtoeol();
@@ -269,6 +270,10 @@ void mv_line(size_t count) {
 }
 
 void save() {
+	if (filename == NULL) {
+		save_as = true;
+		return;
+	}
 	file = fopen(filename, "wa");
 	fprintf(file, "%s\n", text);
 	fclose(file);
@@ -280,6 +285,60 @@ void save() {
 
 void handle_key(int key) {
 	char ch = (char)key;
+	
+	if (save_as) {
+		if ( ch == '\n' ) {
+			save_as = false;
+		    save();
+		    return;
+		} else if (ch == CTRL('c')) {
+			save_as = false;
+			message = NULL;
+			return;
+		} else if (ch == KEY_BACKSPACE || ch == CTRL('g')) {
+			if (filename != NULL) {
+				int length;
+				if (message == NULL) {
+					message = malloc(1);
+				}
+				
+				length = strlen(filename);
+			
+				char *str = malloc(length);
+				memcpy(str, filename, strlen(filename));
+				str[length-1] = '\0';
+				
+				memcpy(filename, str, length);
+				memcpy(message, filename, strlen(filename));
+			}
+			return;
+		}
+		
+		int length;
+		if (message == NULL) {
+			length = 2;
+			message = malloc(2);
+		} else {
+			length = strlen(message)+2;
+		}
+		
+		length *= sizeof(char);
+		
+		char *str = malloc(length);
+		
+		str[length-1] = '\0';
+		str[length-2] = ch;
+		
+		if (filename == NULL) {
+			filename = malloc(2);
+			memcpy(filename, str, length);
+		} else {
+			memcpy(filename+strlen(filename), str, length);
+		}
+		
+		memcpy(message, filename, strlen(filename));
+	    return;
+	}
 
 	if (isprint(key) || key == '\t') {
 		add(ch);
