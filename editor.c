@@ -31,6 +31,7 @@ void setcursor();
 void del();
 void handle_key(int key);
 char* getText();
+void setText();
 void escape();
 int get_offset();
 void mv_line(size_t count);
@@ -80,9 +81,10 @@ int main(int argc, char **argv) {
 	keypad(win, true);
 	
     start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);	//standard text
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);	//messages at screen bottom
-    init_pair(3, COLOR_RED, COLOR_BLACK);	//end of file
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);		//standard text
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);		//messages at screen bottom
+    init_pair(3, COLOR_RED, COLOR_BLACK);		//end of file
+    init_pair(4, COLOR_YELLOW, COLOR_BLACK);	//syntax group 1
 	
 	while(!stop) {
 		erase();
@@ -92,9 +94,7 @@ int main(int argc, char **argv) {
 		attron(COLOR_PAIR(1));
 		attroff(A_BOLD);
 		
-		char *ptr = getText();
-		printw("%s", ptr, 0, 0);
-		free(ptr);
+		setText();
 		
 		int y, x;
 		x++;
@@ -164,13 +164,19 @@ void loadsyntax() {
 	char *working = malloc(1);
 	int index = 0;
 	int synindex = 0;
+	if (syntax1 == NULL) {
+		syntax1 = (char **)malloc(2);
+	}
+	
 	for (int i = 0; i < strlen(input); i++) {
-		if (working[i] != '|') {
+		if (input[i] != '|') {
 			working[index] = input[i];
 			index++;
 		} else {
 			working[index] = '\0';
 			index = 0;
+
+			if (syntax1[synindex] == NULL) syntax1[synindex] = (char *)malloc(2);
 			memcpy(syntax1[synindex], working, strlen(working));
 			free(working);
 			working = malloc(1);
@@ -186,6 +192,49 @@ void setempty() {
 		if (cursorpos()[0] < i) mvprintw(i, 0, "%s", "~");
 	}
 	move(0, 0);
+}
+
+void setText() {
+	if (syntax1 != NULL) {
+		char *str = getText();
+		char *working = malloc(1);
+		int index = 0;
+		
+		
+		for (int i = 0; i < strlen(str); i++) {
+			if (str[i] != ' ' && str[i] != '\n' && i < strlen(str)-1) {
+
+				working[index] = str[i];
+				index++;
+			} else {
+				working[index] = '\0';
+				index = 0;
+				
+				
+				bool found;
+				for (int j = 0; j < sizeof(syntax1); j++) {
+					if (strcmp(syntax1[j], working) == 0) {
+						attron(COLOR_PAIR(4));
+						attron(A_BOLD);
+						printw("%s", working);
+						attron(COLOR_PAIR(1));
+						attroff(A_BOLD);
+						found = true;
+						break;
+					}
+				}
+				
+				if (!found) printw("%s", working);
+				
+				free(working);
+				working = malloc(1);
+			}
+		}
+		
+		free(str);
+	} else {
+		printw("%s", text);
+	}
 }
 
 char *getText() {
