@@ -5,6 +5,12 @@
 #include <string.h>
 #include <signal.h>
 
+
+#ifndef CTRL
+#define CTRL(c) ((c) & 037)
+#endif
+
+
 int pos = 0;
 int line_off = 0;
 
@@ -197,6 +203,8 @@ void down() {
 		}
 	}
 	
+	if (pos > strlen(text)) pos = strlen(text);
+	
 	int y, x;
 	getmaxyx(win, y, x);
 	x++;
@@ -235,35 +243,54 @@ void mv_line(size_t count) {
 
 void handle_key(int key) {
 	char ch = (char)key;
-	
+
 	if (isprint(key)) {
 		add(ch);
-	} else if(key == '\n') {
+		return;
+	}
+	
+	switch(key) {
+	case CTRL('s'):
+		fprintf(logfile, "CTRL+S");
+		fflush(logfile);
+		return;
+	case '\n':
 		add('\n');
-	} else if(key == KEY_BACKSPACE) {
+		break;
+	case KEY_BACKSPACE:
 		del();
-	} else if(key == KEY_LEFT) {
+		break;
+	case KEY_LEFT:
 		if (pos > 0) pos--;
-	} else if(key == KEY_RIGHT) {
+		break;
+	case KEY_RIGHT:
 		if(pos < strlen(text)) pos++;
-	} else if (key == KEY_UP) {
+		break;
+	case KEY_UP:
 		up();
-	} else if (key == KEY_DOWN) {
+		break;
+	case KEY_DOWN:
 		down();
-	} else if (key == KEY_END) {
+		break;
+	case KEY_END:
 		end();
-	} else if (key == KEY_HOME) {
+		break;
+	case KEY_HOME:
 		begin();
-	} else if (key == KEY_DC) {
+		break;
+	case KEY_DC:
 		pos++;
 		del();
-	} else if (key == KEY_NPAGE) {
+		break;
+	case KEY_NPAGE:
 		down();
 		mv_line(1);
-	} else if (key == KEY_PPAGE) {
+		break;
+	case KEY_PPAGE:
 		up();
 		mv_line(-1);
-	} else {
-	
+		break;
+	default:
+		break;
 	}
 }
