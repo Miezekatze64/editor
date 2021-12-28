@@ -25,6 +25,7 @@ bool save_as = false;
 
 char *text;
 char **syntax1;
+int syntax1_size = 0;
 
 void add(char c);
 void setcursor();
@@ -165,7 +166,7 @@ void loadsyntax() {
 	int index = 0;
 	int synindex = 0;
 	if (syntax1 == NULL) {
-		syntax1 = (char **)malloc(2);
+		syntax1 = malloc(strlen(input));
 	}
 	
 	for (int i = 0; i < strlen(input); i++) {
@@ -176,10 +177,12 @@ void loadsyntax() {
 			working[index] = '\0';
 			index = 0;
 
-			if (syntax1[synindex] == NULL) syntax1[synindex] = (char *)malloc(2);
+			syntax1[synindex] = (char *)malloc(10);
 			memcpy(syntax1[synindex], working, strlen(working));
-			free(working);
-			working = malloc(1);
+			
+			working = malloc(20);
+			syntax1_size++;
+			synindex++;
 		}
 	}
 }
@@ -196,27 +199,32 @@ void setempty() {
 
 void setText() {
 	if (syntax1 != NULL) {
+	
 		char *str = getText();
-		char *working = malloc(1);
+		char *working = malloc(100);
 		int index = 0;
-		
 		
 		for (int i = 0; i < strlen(str); i++) {
 			if (str[i] != ' ' && str[i] != '\n' && i < strlen(str)-1) {
-
 				working[index] = str[i];
 				index++;
 			} else {
 				working[index] = '\0';
+				
+				char *to_show = malloc(strlen(working)+3);
+				memcpy(to_show, working, strlen(working));
+				
+				to_show[index] = str[i];
+				to_show[index+1] = '\0';
+				
 				index = 0;
 				
-				
-				bool found;
-				for (int j = 0; j < sizeof(syntax1); j++) {
+				bool found = false;
+				for (int j = 0; j < syntax1_size-1; j++) {
 					if (strcmp(syntax1[j], working) == 0) {
 						attron(COLOR_PAIR(4));
 						attron(A_BOLD);
-						printw("%s", working);
+						printw("%s", to_show);
 						attron(COLOR_PAIR(1));
 						attroff(A_BOLD);
 						found = true;
@@ -224,10 +232,9 @@ void setText() {
 					}
 				}
 				
-				if (!found) printw("%s", working);
-				
-				free(working);
-				working = malloc(1);
+				if (!found) printw("%s", to_show);
+				free(to_show);
+				working = malloc(100);
 			}
 		}
 		
