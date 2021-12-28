@@ -272,6 +272,7 @@ void mv_line(size_t count) {
 void save() {
 	if (filename == NULL) {
 		save_as = true;
+		handle_key(0);
 		return;
 	}
 	file = fopen(filename, "wa");
@@ -279,7 +280,7 @@ void save() {
 	fclose(file);
 	
 	char *str = (char *)malloc(255 * sizeof(char));
-	sprintf(str, "Saved as %s", filename);
+	sprintf(str, "Saved as %s!", filename);
 	message = str;
 }
 
@@ -309,8 +310,8 @@ void handle_key(int key) {
 				str[length-1] = '\0';
 				
 				memcpy(filename, str, length);
-				message = "Save as: ";
-				memcpy(message+9, filename, strlen(filename));
+				memcpy(message, "Enter filename: ", 16);
+				memcpy(message+16, filename, strlen(filename));
 			}
 			return;
 		}
@@ -318,7 +319,7 @@ void handle_key(int key) {
 		int length;
 		if (message == NULL) {
 			length = 2;
-			message = malloc(11);
+			message = malloc(18);
 		} else {
 			length = strlen(message)+2;
 		}
@@ -336,8 +337,8 @@ void handle_key(int key) {
 		} else {
 			memcpy(filename+strlen(filename), str, length);
 		}
-//		message = "Save as: ";
-		memcpy(message+9, filename, strlen(filename));
+		memcpy(message, "Enter filename: ", 16);
+		memcpy(message+16, filename, strlen(filename));
 	    return;
 	}
 
