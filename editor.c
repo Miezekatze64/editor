@@ -144,11 +144,13 @@ void loadsyntax() {
 
 	if (strlen(lang) == 0) return;
 	
-	char *langfile = malloc(strlen(lang)+7);
-	memcpy(langfile, lang, strlen(lang));
-	memcpy(langfile+strlen(lang), ".syntax", 7);
+	char *langfile = malloc(strlen(lang)+7+8);
 	
-	langfile[strlen(lang)+7] = '\0';
+	memcpy(langfile, ".syntax/", 8);
+	memcpy(langfile+8, lang, strlen(lang));
+	memcpy(langfile+8+strlen(lang), ".syntax", 7);
+	
+	langfile[strlen(lang)+7+8] = '\0';
 
 	char *input = malloc(2);
 	
