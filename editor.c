@@ -232,7 +232,7 @@ void setText() {
 			} else {
 				working[index] = '\0';
 				
-				if (lines == maxlines) break;
+				if (lines >= maxlines) return;
 				if (str[i] == '\n') lines++;
 				
 				char *to_show = malloc(strlen(working)+4);
@@ -409,7 +409,7 @@ void down() {
 	int y, x;
 	getmaxyx(win, y, x);
 	x++;
-	if (cursorpos()[0] > y) mv_line(1);
+	if (cursorpos()[0] >= y) mv_line(1);
 }
 
 void end() {
