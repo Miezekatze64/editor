@@ -1,1 +1,5 @@
-int|void|long|char|size_t
+int|void|long|char|size_t|bool|volatile|static|
+if|while|for|else|return|break|switch|case|do|sizeof|
+true|false|
+#include|#ifndef|#define|#endif|
+*num*

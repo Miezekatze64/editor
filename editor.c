@@ -24,14 +24,14 @@ bool hasfile = false;
 bool save_as = false;
 
 char *text;
-char **syntax1;
-int syntax1_size = 0;
+char **syntax[5];
+int syntax_size[5] = {0, 0, 0, 0, 0};
 
 void add(char c);
 void setcursor();
 void del();
 void handle_key(int key);
-char* getText();
+char *getText();
 void setText();
 void escape();
 int get_offset();
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 				text = malloc(fsize + 1);
 				fread(text, fsize, 1, file);
 				fclose(file);
-				text[fsize] = '\0';
+				text[fsize-1] = '\0';
 	
 				hasfile = true;
 			}
@@ -85,7 +85,13 @@ int main(int argc, char **argv) {
     init_pair(1, COLOR_WHITE, COLOR_BLACK);		//standard text
     init_pair(2, COLOR_GREEN, COLOR_BLACK);		//messages at screen bottom
     init_pair(3, COLOR_RED, COLOR_BLACK);		//end of file
-    init_pair(4, COLOR_YELLOW, COLOR_BLACK);	//syntax group 1
+    
+    
+    init_pair(10, COLOR_YELLOW, COLOR_BLACK);	//syntax group 0
+    init_pair(11, COLOR_WHITE, COLOR_BLACK);	//syntax group 1
+    init_pair(12, COLOR_RED, COLOR_BLACK);	//syntax group 2
+    init_pair(13, COLOR_BLUE, COLOR_BLACK);	//syntax group 3
+    init_pair(14, COLOR_GREEN, COLOR_BLACK);	//syntax group 4
 	
 	while(!stop) {
 		erase();
@@ -163,26 +169,33 @@ void loadsyntax() {
 	free(langfile);
 	
 	char *working = malloc(1);
-	int index = 0;
-	int synindex = 0;
-	if (syntax1 == NULL) {
-		syntax1 = malloc(strlen(input));
-	}
 	
-	for (int i = 0; i < strlen(input); i++) {
-		if (input[i] != '|') {
-			working[index] = input[i];
-			index++;
-		} else {
-			working[index] = '\0';
-			index = 0;
-
-			syntax1[synindex] = (char *)malloc(10);
-			memcpy(syntax1[synindex], working, strlen(working));
-			
-			working = malloc(20);
-			syntax1_size++;
-			synindex++;
+	int i = 0;
+	for (int group = 0; group < 5; group++) {
+		int index = 0;
+		int synindex = 0;
+		if (syntax[group] == NULL) {
+			syntax[group] = malloc(strlen(input));
+		}
+		
+		while (i < strlen(input)) {
+			if (input[i] == '\n') {
+				i++;
+				break;
+			}
+			if (input[i] != '|') {
+				working[index] = input[i];
+				index++;
+			} else {
+				working[index] = '\0';
+				index = 0;
+				syntax[group][synindex] = (char *)malloc(10);
+				memcpy(syntax[group][synindex], working, strlen(working)+1);
+				working = malloc(20);
+				syntax_size[group]++;
+				synindex++;
+			}
+			i++;
 		}
 	}
 }
@@ -198,46 +211,54 @@ void setempty() {
 }
 
 void setText() {
-	if (syntax1 != NULL) {
-	
+	if (syntax[0] != NULL) {
 		char *str = getText();
 		char *working = malloc(100);
 		int index = 0;
+		int lines = 0;
+		
+		int maxlines, x;
+		getmaxyx(win, maxlines, x);
+		x++;
 		
 		for (int i = 0; i < strlen(str); i++) {
-			if (str[i] != ' ' && str[i] != '\n' && i < strlen(str)-1) {
+			if (str[i] != ' ' && str[i] != '\n' && str[i] != '(' && str[i] != ')' && str[i] != '[' && str[i] != ']' && str[i] != '{' && str[i] != '}' && str[i] != '*' &&  str[i] != '\t' &&  str[i] != ';' &&  str[i] != ':' && i < strlen(str)-1) {
 				working[index] = str[i];
 				index++;
 			} else {
 				working[index] = '\0';
 				
-				char *to_show = malloc(strlen(working)+3);
-				memcpy(to_show, working, strlen(working));
+				if (lines == maxlines) break;
+				if (str[i] == '\n') lines++;
 				
+				char *to_show = malloc(strlen(working)+4);
+				memcpy(to_show, working, strlen(working));
 				to_show[index] = str[i];
 				to_show[index+1] = '\0';
-				
 				index = 0;
 				
 				bool found = false;
-				for (int j = 0; j < syntax1_size-1; j++) {
-					if (strcmp(syntax1[j], working) == 0) {
-						attron(COLOR_PAIR(4));
-						attron(A_BOLD);
-						printw("%s", to_show);
-						attron(COLOR_PAIR(1));
-						attroff(A_BOLD);
-						found = true;
-						break;
+				for (int group = 0; group < 5; group++) {
+					for (int j = 0; j < syntax_size[group]; j++) {
+						char *compare = syntax[group][j];
+						if (strcmp(compare, working) == 0) {
+							attron(COLOR_PAIR(10+group));
+							attron(A_BOLD);
+							printw("%s", working);
+							attron(COLOR_PAIR(1));
+							attroff(A_BOLD);
+							printw("%c", str[i]);
+							found = true;
+							break;
+						}
 					}
+					if (found) break;
 				}
-				
 				if (!found) printw("%s", to_show);
 				free(to_show);
 				working = malloc(100);
-			}
+			}			
 		}
-		
 		free(str);
 	} else {
 		printw("%s", text);
@@ -434,11 +455,10 @@ void handle_key(int key) {
 				
 				memcpy(filename, str, length);
 				memcpy(message, "Enter filename: ", 16);
-				memcpy(message+16, filename, strlen(filename));
+				memcpy(message+16, filename, strlen(filename)+1);
 			}
 			return;
-		}
-		
+		} else if (isprint(key) || key == 0) {
 		int length;
 		if (message == NULL) {
 			length = 2;
@@ -447,21 +467,22 @@ void handle_key(int key) {
 			length = strlen(message)+2;
 		}
 		
-		length *= sizeof(char);
-		
-		char *str = malloc(length);
-		
-		str[length-1] = '\0';
-		str[length-2] = ch;
-		
-		if (filename == NULL) {
-			filename = malloc(2);
-			memcpy(filename, str, length);
-		} else {
-			memcpy(filename+strlen(filename), str, length);
+			length *= sizeof(char);
+			
+			char *str = malloc(length);
+			
+			str[length-1] = '\0';
+			str[length-2] = ch;
+			
+			if (filename == NULL) {
+				filename = malloc(2);
+				memcpy(filename, str, length);
+			} else {
+				memcpy(filename+strlen(filename), str, length);
+			}
+			memcpy(message, "Enter filename: ", 16);
+			memcpy(message+16, filename, strlen(filename)+1);
 		}
-		memcpy(message, "Enter filename: ", 16);
-		memcpy(message+16, filename, strlen(filename));
 	    return;
 	}
 
