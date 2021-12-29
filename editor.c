@@ -10,6 +10,7 @@
 #define CTRL(c) ((c) & 037)
 #endif
 
+#define SYNLEN 5
 
 int pos = 0;
 int line_off = 0;
@@ -24,8 +25,8 @@ bool hasfile = false;
 bool save_as = false;
 
 char *text;
-char **syntax[5];
-int syntax_size[5] = {0, 0, 0, 0, 0};
+char **syntax[SYNLEN];
+int syntax_size[SYNLEN] = {0, 0, 0, 0, 0};
 
 void add(char c);
 void setcursor();
@@ -89,8 +90,8 @@ int main(int argc, char **argv) {
     
     init_pair(10, COLOR_YELLOW, COLOR_BLACK);	//syntax group 0
     init_pair(11, COLOR_WHITE, COLOR_BLACK);	//syntax group 1
-    init_pair(12, COLOR_RED, COLOR_BLACK);	//syntax group 2
-    init_pair(13, COLOR_BLUE, COLOR_BLACK);	//syntax group 3
+    init_pair(12, COLOR_RED, COLOR_BLACK);		//syntax group 2
+    init_pair(13, COLOR_BLUE, COLOR_BLACK);		//syntax group 3
     init_pair(14, COLOR_GREEN, COLOR_BLACK);	//syntax group 4
 	
 	while(!stop) {
@@ -171,7 +172,7 @@ void loadsyntax() {
 	char *working = malloc(1);
 	
 	int i = 0;
-	for (int group = 0; group < 5; group++) {
+	for (int group = 0; group < SYNLEN; group++) {
 		int index = 0;
 		int synindex = 0;
 		if (syntax[group] == NULL) {
@@ -222,7 +223,7 @@ void setText() {
 		x++;
 		
 		for (int i = 0; i < strlen(str); i++) {
-			if (str[i] != ' ' && str[i] != '\n' && str[i] != '(' && str[i] != ')' && str[i] != '[' && str[i] != ']' && str[i] != '{' && str[i] != '}' && str[i] != '*' &&  str[i] != '\t' &&  str[i] != ';' &&  str[i] != ':' && i < strlen(str)-1) {
+			if (str[i] != ' ' && str[i] != '\n' && str[i] != '(' && str[i] != ')' && str[i] != '[' && str[i] != ']' && str[i] != '{' && str[i] != '}' && str[i] != '*' &&  str[i] != '\t' &&  str[i] != ';' &&  str[i] != ':' && str[i] != ',' && i < strlen(str)-1) {
 				working[index] = str[i];
 				index++;
 			} else {
@@ -238,10 +239,35 @@ void setText() {
 				index = 0;
 				
 				bool found = false;
-				for (int group = 0; group < 5; group++) {
+				int highlight = 0;
+				
+				for (int group = 0; group < SYNLEN; group++) {
+					highlight = 0;
 					for (int j = 0; j < syntax_size[group]; j++) {
 						char *compare = syntax[group][j];
-						if (strcmp(compare, working) == 0) {
+						
+						if (strcmp(compare, "*num*") == 0) {
+							if (strspn(working, "0123456789") == strlen(working)) {
+								highlight = 1;
+							} else {
+								highlight = 0;
+							}
+						} else if (strcmp(compare, "*string*") == 0) {
+							if (working[0] == '\"' && working[strlen(working)-1] == '\"') {
+								highlight = 1;
+							} else 	if (working[0] == '\'' && working[strlen(working)-1] == '\'') {
+								highlight = 1;
+							} else {
+								highlight = 0;
+							}
+						} else if (strcmp(compare, working) == 0) {
+							highlight = 1;
+						} else {
+							highlight = 0;
+						}
+						
+						
+						if (highlight == 1) {
 							attron(COLOR_PAIR(10+group));
 							attron(A_BOLD);
 							printw("%s", working);
