@@ -109,10 +109,10 @@ int main(int argc, char **argv) {
 		
 		int y, x;
 		x++;
-		getmaxyx(win, y, x); 
+		getmaxyx(win, y, x);
+		move(y-1, 0);
+		clrtoeol();
 		if (message != NULL) {
-			move(y-1, 0);
-			clrtoeol();
 			attron(COLOR_PAIR(2));
 			mvprintw(y-1, 0, "%s", message);
 			message = NULL;
@@ -241,17 +241,21 @@ void setText() {
 			} else {
 				working[index] = '\0';
 				
-				if (lines >= maxlines) return;
+				int y, x;
+				getyx(win, y, x);
+				x++;
+				if (y >= maxlines-1) return;
+//				printf("%d", y);
 				if (str[i] == '\n') {
 					lines++;
 					xpos = 0;
 				}
 				
 				if (xpos > maxX) {
-					xpos -= maxX;
+					xpos -= maxX+1;
 					lines++;
 				}
-				
+		
 
 				char *to_show = malloc(strlen(working)+4);
 				memcpy(to_show, working, strlen(working));
@@ -363,6 +367,12 @@ void setText() {
 	} else {
 		printw("%s", text);
 	}
+
+	int maxX, maxY;
+	maxX++;
+	getmaxyx(win, maxY, maxX);
+	move(maxY-1, 0);
+	clrtoeol();
 }
 
 char *getText() {
@@ -534,6 +544,29 @@ void save() {
 	message = str;
 }
 
+void nexline() {
+	int tabs = 0;
+	bool first_char = true;
+	for (int i = pos-1; i > 0; i--) {
+		if (first_char && text[i] == '{') tabs++;
+		if (text[i] != ' ' && text[i] != '\t' && text[i] != '\n') first_char = false;
+        if (text[i] == '\n') {
+            i++;
+            for (int j = i; j < pos; j++) {
+                if (text[j] != '\t') {
+                    tabs += j-i;
+					break;
+				}
+			}
+			break;
+		}
+	}
+	add('\n');
+	for (int i = 0; i < tabs; i++)
+		add('\t');
+}
+
+
 void handle_key(int key) {
 	char ch = (char)key;
 	
@@ -605,7 +638,7 @@ void handle_key(int key) {
 		stop = 1;
 		break;
 	case '\n':
-		add('\n');
+		nexline();
 		break;
 	case KEY_BACKSPACE:
 		del();
