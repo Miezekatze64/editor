@@ -1,7 +1,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <ctype.h>
+#Dinclude <ctype.h>
 #include <string.h>
 #include <signal.h>
 
@@ -90,14 +90,14 @@ int main(int argc, char **argv_in) {
 	init_pair(3, COLOR_RED, COLOR_BLACK);		//end of file
 	
 	
-	init_pair(10, COLOR_GREEN, COLOR_BLACK);	//syntax group 0
-	init_pair(11, COLOR_WHITE, COLOR_BLACK);	//syntax group 1
-	init_pair(12, COLOR_RED, COLOR_BLACK);		//syntax group 2
-	init_pair(13, COLOR_BLUE, COLOR_BLACK);		//syntax group 3
-	init_pair(14, COLOR_YELLOW, COLOR_BLACK);	//syntax group 4
-	init_pair(15, COLOR_MAGENTA, COLOR_BLACK);	//syntax group 5
-	init_pair(16, COLOR_WHITE, COLOR_YELLOW);	//syntax group 6
-	init_pair(17, COLOR_CYAN, COLOR_BLACK);		//syntax group 7
+	init_pair(10, COLOR_CYAN, COLOR_BLACK);		//syntax group 0
+	init_pair(11, COLOR_GREEN, COLOR_BLACK);	//syntax group 1
+	init_pair(12, COLOR_WHITE, COLOR_BLACK);	//syntax group 2
+	init_pair(13, COLOR_RED, COLOR_BLACK);		//syntax group 3
+	init_pair(14, COLOR_BLUE, COLOR_BLACK);		//syntax group 4
+	init_pair(15, COLOR_YELLOW, COLOR_BLACK);	//syntax group 5
+	init_pair(16, COLOR_MAGENTA, COLOR_BLACK);	//syntax group 6
+	init_pair(17, COLOR_WHITE, COLOR_YELLOW);	//syntax group 7
 	
 	while(!stop) {
 		erase();
@@ -251,7 +251,7 @@ void setText() {
 		int xpos = 0;
 		for (int i = 0; i < strlen(str); i++) {
 			xpos++;
-			if (!(str[i] == ' ' || str[i] == '\n' || (str[i] == '(' || str[i] == ')' || str[i] == '[' || str[i] == ']' || str[i] == '{' || str[i] == '}' || str[i] == '\t' || str[i] == ';' || str[i] == ':' || str[i] == ',' || str[i] == '.' || i >= strlen(str)-1))) {
+			if (!(str[i] == ' ' || str[i] == '\n' || (str[i] == '(' || str[i] == ')' || str[i] == '[' || str[i] == ']' || str[i] == '{' || str[i] == '}' || str[i] == '\t' || str[i] == ';' || str[i] == ':' || str[i] == ',' || str[i] == '='  || str[i] == '.' || i >= strlen(str)-1))) {
 				working[index] = str[i];
 				index++;
 			} else {
