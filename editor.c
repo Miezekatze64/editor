@@ -10,7 +10,7 @@
 #define CTRL(c) ((c) & 037)
 #endif
 
-#define SYNLEN 5
+#define SYNLEN 6
 
 int pos = 0;
 int line_off = 0;
@@ -26,7 +26,7 @@ bool save_as = false;
 
 char *text;
 char **syntax[SYNLEN];
-int syntax_size[SYNLEN] = {0, 0, 0, 0, 0};
+int syntax_size[SYNLEN] = {0, 0, 0, 0, 0, 0};
 
 void add(char c);
 void setcursor();
@@ -88,11 +88,12 @@ int main(int argc, char **argv) {
     init_pair(3, COLOR_RED, COLOR_BLACK);		//end of file
     
     
-    init_pair(10, COLOR_YELLOW, COLOR_BLACK);	//syntax group 0
+    init_pair(10, COLOR_GREEN, COLOR_BLACK);	//syntax group 0
     init_pair(11, COLOR_WHITE, COLOR_BLACK);	//syntax group 1
     init_pair(12, COLOR_RED, COLOR_BLACK);		//syntax group 2
     init_pair(13, COLOR_BLUE, COLOR_BLACK);		//syntax group 3
-    init_pair(14, COLOR_GREEN, COLOR_BLACK);	//syntax group 4
+    init_pair(14, COLOR_YELLOW, COLOR_BLACK);	//syntax group 4
+    init_pair(15, COLOR_MAGENTA, COLOR_BLACK);		//syntax group 5
 	
 	while(!stop) {
 		erase();
@@ -214,7 +215,7 @@ void setempty() {
 void setText() {
 	if (syntax[0] != NULL) {
 		char *str = getText();
-		char *working = malloc(100);
+		char *working = malloc(255);
 		int index = 0;
 		int lines = 0;
 		
@@ -247,7 +248,7 @@ void setText() {
 						char *compare = syntax[group][j];
 						
 						if (strcmp(compare, "*num*") == 0) {
-							if (strspn(working, "0123456789") == strlen(working)) {
+							if (strspn(working, "0123456789Lfd") == strlen(working)) {
 								highlight = 1;
 							} else {
 								highlight = 0;
@@ -282,7 +283,7 @@ void setText() {
 				}
 				if (!found) printw("%s", to_show);
 				free(to_show);
-				working = malloc(100);
+				working = malloc(255);
 			}			
 		}
 		free(str);
@@ -300,7 +301,7 @@ char *getText() {
 }
 
 void add(char c) {
-	char *new_array = malloc(strlen(text)+3 * sizeof(char));
+	char *new_array = malloc(strlen(text)+10 * sizeof(char));
 	new_array[strlen(text)+2] = '\0';
 	
 	for (int i = 0; i < strlen(new_array)+1; i++) {
