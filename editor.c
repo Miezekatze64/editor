@@ -25,6 +25,7 @@ bool hasfile = false;
 bool save_as = false;
 
 char *text;
+char **argv;
 char **syntax[SYNLEN];
 int syntax_size[SYNLEN] = {0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -41,7 +42,8 @@ void setempty();
 int *cursorpos();
 void loadsyntax();
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv_in) {
+	argv = argv_in;
 	if (argc > 1) {
 		if (argv[1][0] != '-') {
 			//parse as file
@@ -152,11 +154,25 @@ void loadsyntax() {
 	
 	char *langfile = malloc(strlen(lang)+7+8);
 	
-	memcpy(langfile, ".syntax/", 8);
-	memcpy(langfile+8, lang, strlen(lang));
-	memcpy(langfile+8+strlen(lang), ".syntax", 7);
+	char *path = malloc(strlen(argv[0]));
+	int index = 0;
+	for (int i = strlen(argv[0])-1; i >= 0; i--) {
+		if (argv[0][i] == '/') {
+			index = i;
+			break;
+		}
+	}
 	
-	langfile[strlen(lang)+7+8] = '\0';
+	memcpy(path, argv[0], index+1);
+	path[index+1] = '\0';
+	
+	langfile[0] = '\0';
+	
+	strcat(langfile, path);
+	strcat(langfile, ".syntax/");
+	strcat(langfile, lang);
+	strcat(langfile, ".syntax");
+
 
 	char *input = malloc(2);
 	
