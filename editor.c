@@ -83,19 +83,19 @@ int main(int argc, char **argv) {
 	keypad(win, true);
 	
     start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);		//standard text
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);		//messages at screen bottom
-    init_pair(3, COLOR_RED, COLOR_BLACK);		//end of file
-    
-    
-    init_pair(10, COLOR_GREEN, COLOR_BLACK);	//syntax group 0
-    init_pair(11, COLOR_WHITE, COLOR_BLACK);	//syntax group 1
-    init_pair(12, COLOR_RED, COLOR_BLACK);		//syntax group 2
-    init_pair(13, COLOR_BLUE, COLOR_BLACK);		//syntax group 3
-    init_pair(14, COLOR_YELLOW, COLOR_BLACK);	//syntax group 4
-    init_pair(15, COLOR_MAGENTA, COLOR_BLACK);	//syntax group 5
+	init_pair(1, COLOR_WHITE, COLOR_BLACK);		//standard text
+	init_pair(2, COLOR_GREEN, COLOR_BLACK);		//messages at screen bottom
+	init_pair(3, COLOR_RED, COLOR_BLACK);		//end of file
+	
+	
+	init_pair(10, COLOR_GREEN, COLOR_BLACK);	//syntax group 0
+	init_pair(11, COLOR_WHITE, COLOR_BLACK);	//syntax group 1
+	init_pair(12, COLOR_RED, COLOR_BLACK);		//syntax group 2
+	init_pair(13, COLOR_BLUE, COLOR_BLACK);		//syntax group 3
+	init_pair(14, COLOR_YELLOW, COLOR_BLACK);	//syntax group 4
+	init_pair(15, COLOR_MAGENTA, COLOR_BLACK);	//syntax group 5
 	init_pair(16, COLOR_WHITE, COLOR_YELLOW);	//syntax group 6
-    init_pair(17, COLOR_CYAN, COLOR_BLACK);		//syntax group 7
+	init_pair(17, COLOR_CYAN, COLOR_BLACK);		//syntax group 7
 	
 	while(!stop) {
 		erase();
@@ -304,7 +304,7 @@ void setText() {
 							
 						} else if (!comment || group == 6) {
 							if (strcmp(compare, "*num*") == 0) {
-								if (strspn(working, "0123456789Lfd") == strlen(working)) {
+								if (strspn(working, "-0123456789Lfd") == strlen(working)) {
 									highlight = 1;
 								} else {
 									highlight = 0;
@@ -395,9 +395,11 @@ int *cursorpos() {
 			y++;
 			x = 0;
 		} else {
-			if (text[i] == '\t')
-				x+= 4;
-			else
+			if (text[i] == '\t') {
+				x += 4;
+				x = (int)(x/4);
+				x *= 4;
+		    } else
 				x++;
 		}
 	}
@@ -483,6 +485,7 @@ void end() {
 }
 
 void begin() {
+	if (pos > 0) if (text[pos] == '\n') pos--;
 	while (pos > 0 && text[pos] != '\n') {
 		pos--;
 	}
@@ -590,6 +593,7 @@ void handle_key(int key) {
 		return;
 	case CTRL('c'):
 		stop = 1;
+		break;
 	case '\n':
 		add('\n');
 		break;
@@ -615,20 +619,26 @@ void handle_key(int key) {
 		begin();
 		break;
 	case KEY_DC:
-		pos++;
-		del();
+		if (pos < strlen(text)-1) {
+			pos++;
+			del();
+		}
 		break;
 	case KEY_NPAGE:
-        for(int i = 0; i < 5; i++) {
-    		down();
+        for(int i = 0; i < 10; i++) {
+    		if (pos < strlen(text)-10) {
+				down();
+				mv_line(1);
+			}
         }
-		mv_line(5);
 		break;
 	case KEY_PPAGE:
-        for (int i = 0; i < 5; i++) {
-    		up();
+        for (int i = 0; i < 10; i++) {
+			if (pos > 10) {
+				up();
+				mv_line(-1);
+			}
         }
-		mv_line(-5);
 		break;
 	default:
 		break;
