@@ -325,9 +325,12 @@ void add(char c) {
 int *cursorpos() {
 	int x = 0;
 	int y = 0;
+	int maxX, maxY;
+	getmaxyx(win, maxY, maxX);
+	maxY++;
 	int i;
 	for (i = get_offset(); i < pos; i++) {
-		if (text[i] == '\n') {
+		if (text[i] == '\n' || x >= maxX-1) {
 			y++;
 			x = 0;
 		} else {
