@@ -227,13 +227,14 @@ void setText() {
 		int index = 0;
 		int lines = 0;
 		
-		int maxlines, x;
-		getmaxyx(win, maxlines, x);
-		x++;
+		int maxlines, maxX;
+		getmaxyx(win, maxlines, maxX);
 		
 		int comment = 0;
 		char *comment_suf = malloc(1);
+		int xpos = 0;
 		for (int i = 0; i < strlen(str); i++) {
+			xpos++;
 			if (!(str[i] == ' ' || str[i] == '\n' || (str[i] == '(' || str[i] == ')' || str[i] == '[' || str[i] == ']' || str[i] == '{' || str[i] == '}' || str[i] == '\t' || str[i] == ';' || str[i] == ':' || str[i] == ',' || str[i] == '.' || i >= strlen(str)-1))) {
 				working[index] = str[i];
 				index++;
@@ -241,8 +242,17 @@ void setText() {
 				working[index] = '\0';
 				
 				if (lines >= maxlines) return;
-				if (str[i] == '\n') lines++;
+				if (str[i] == '\n') {
+					lines++;
+					xpos = 0;
+				}
 				
+				if (xpos > maxX) {
+					xpos -= maxX;
+					lines++;
+				}
+				
+
 				char *to_show = malloc(strlen(working)+4);
 				memcpy(to_show, working, strlen(working));
 				to_show[index] = str[i];
