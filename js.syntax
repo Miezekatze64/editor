@@ -3,3 +3,4 @@ if|else|while|do|switch|break|return|for|new|super|this|
 true|false|
 require|
 *num*|*string*|
+window|document|alert|prompt|console|

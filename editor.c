@@ -224,7 +224,7 @@ void setText() {
 		x++;
 		
 		for (int i = 0; i < strlen(str); i++) {
-			if (str[i] != ' ' && str[i] != '\n' && str[i] != '(' && str[i] != ')' && str[i] != '[' && str[i] != ']' && str[i] != '{' && str[i] != '}' && str[i] != '*' &&  str[i] != '\t' &&  str[i] != ';' &&  str[i] != ':' && str[i] != ',' && i < strlen(str)-1) {
+			if (str[i] != ' ' && str[i] != '\n' && str[i] != '(' && str[i] != ')' && str[i] != '[' && str[i] != ']' && str[i] != '{' && str[i] != '}' && str[i] != '*' &&  str[i] != '\t' &&  str[i] != ';' &&  str[i] != ':' && str[i] != ',' &&  str[i] != '.' && i < strlen(str)-1) {
 				working[index] = str[i];
 				index++;
 			} else {
