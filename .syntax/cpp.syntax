@@ -2,4 +2,4 @@ int|void|long|char|size_t|bool|volatile|static|struct|type|union|class|
 if|while|for|else|return|break|switch|case|do|sizeof|
 true|false|
 #include|#ifndef|#define|#endif|
-*num*|*string*|
+*num*|"?"|'?'|

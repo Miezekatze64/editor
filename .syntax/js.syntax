@@ -2,7 +2,7 @@ let|var|const|class|extends|implements|function|
 if|else|while|do|switch|break|return|for|new|super|this|
 true|false|
 require|
-*num*|*string*|
+*num*|"?"|'?'|
 window|document|alert|prompt|console|
 TODO|//TODO|
 /*?*/|//?|

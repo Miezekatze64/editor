@@ -2,7 +2,7 @@ private|protected|public|static|final|volatile|class|extends|implements|void|int
 if|else|while|do|switch|break|return|for|new|super|this|
 true|false|
 import|package|
-*num*|*string*|
-
+*num*|"?"|'?'|
+System|out|println|print|printf|
 TODO|//TODO|
 //?|/*?*/|
