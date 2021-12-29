@@ -1,7 +1,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <unistd.h>
-#Dinclude <ctype.h>
+#include <ctype.h>
 #include <string.h>
 #include <signal.h>
 
