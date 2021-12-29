@@ -135,7 +135,11 @@ void loadsyntax() {
 	
 	char *lang = malloc(1);
 	lang[0] = '\0';
-	for (int i = strlen(filename); i > 0; i--) {
+	if (strchr(filename, '.') == NULL) {
+		lang = malloc(strlen(filename));
+		memcpy(lang, filename, strlen(filename));
+		lang[strlen(filename)] = '\0';
+	} else for (int i = strlen(filename); i > 0; i--) {
 		if (filename[i] == '.') {
 			lang = malloc(strlen(filename)-i);
 			memcpy(lang, filename+i+1, strlen(filename)-i);

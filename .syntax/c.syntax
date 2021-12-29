@@ -3,3 +3,6 @@ if|while|for|else|return|break|switch|case|do|sizeof|
 true|false|
 #include|#ifndef|#define|#endif|
 *num*|*string*|
+malloc|memcpy|
+TODO|//TODO|
+//?|/*?*/|
