@@ -1,2 +1,2 @@
 editor: editor.c
-	gcc editor.c -o editor -lncurses -O3 -Wall
+	gcc editor.c -o editor -O3 -lncurses -Wall

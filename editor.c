@@ -10,7 +10,7 @@
 #define CTRL(c) ((c) & 037)
 #endif
 
-#define SYNLEN 6
+#define SYNLEN 8
 
 int pos = 0;
 int line_off = 0;
@@ -26,7 +26,7 @@ bool save_as = false;
 
 char *text;
 char **syntax[SYNLEN];
-int syntax_size[SYNLEN] = {0, 0, 0, 0, 0, 0};
+int syntax_size[SYNLEN] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 void add(char c);
 void setcursor();
@@ -93,7 +93,9 @@ int main(int argc, char **argv) {
     init_pair(12, COLOR_RED, COLOR_BLACK);		//syntax group 2
     init_pair(13, COLOR_BLUE, COLOR_BLACK);		//syntax group 3
     init_pair(14, COLOR_YELLOW, COLOR_BLACK);	//syntax group 4
-    init_pair(15, COLOR_MAGENTA, COLOR_BLACK);		//syntax group 5
+    init_pair(15, COLOR_MAGENTA, COLOR_BLACK);	//syntax group 5
+	init_pair(16, COLOR_WHITE, COLOR_YELLOW);	//syntax group 6
+    init_pair(17, COLOR_CYAN, COLOR_BLACK);		//syntax group 7
 	
 	while(!stop) {
 		erase();
@@ -225,8 +227,10 @@ void setText() {
 		getmaxyx(win, maxlines, x);
 		x++;
 		
+		int comment = 0;
+		char *comment_suf = malloc(1);
 		for (int i = 0; i < strlen(str); i++) {
-			if (str[i] != ' ' && str[i] != '\n' && str[i] != '(' && str[i] != ')' && str[i] != '[' && str[i] != ']' && str[i] != '{' && str[i] != '}' && str[i] != '*' &&  str[i] != '\t' &&  str[i] != ';' &&  str[i] != ':' && str[i] != ',' &&  str[i] != '.' && i < strlen(str)-1) {
+			if (!(str[i] == ' ' || str[i] == '\n' || (str[i] == '(' || str[i] == ')' || str[i] == '[' || str[i] == ']' || str[i] == '{' || str[i] == '}' || str[i] == '\t' || str[i] == ';' || str[i] == ':' || str[i] == ',' || str[i] == '.' || i >= strlen(str)-1))) {
 				working[index] = str[i];
 				index++;
 			} else {
@@ -249,24 +253,71 @@ void setText() {
 					for (int j = 0; j < syntax_size[group]; j++) {
 						char *compare = syntax[group][j];
 						
-						if (strcmp(compare, "*num*") == 0) {
-							if (strspn(working, "0123456789Lfd") == strlen(working)) {
+						if (strchr(compare, '?') != NULL) {
+							char *pre = malloc(strlen(compare));
+							char *suf = malloc(strlen(compare));
+							
+							int position = (int)(strchr(compare, '?')-compare);
+							for (int ctpos = 0; ctpos < strlen(compare)+1; ctpos++) {
+								if (ctpos < position) {
+									pre[ctpos] = compare[ctpos];
+								} else if (ctpos == position) {
+									pre[ctpos] = '\0';
+								} else if (ctpos <= strlen(compare)) {
+									if (position == strlen(compare)-1) {
+										suf[ctpos-position-1] = '\n';
+										suf[ctpos-position] = '\0';
+									} else {
+										suf[ctpos-position-1] = compare[ctpos];
+									}
+								} else {
+									suf[ctpos-position-1] = '\0';
+								}
+							}
+							
+							if (strncmp(working, pre, strlen(pre)) == 0) {
+								comment = 1;
+								memcpy(comment_suf, suf, strlen(suf)+1);
+							}
+							if(comment == 1) {
+								highlight = 1;
+							}
+							
+							if (comment_suf)
+							if (comment == 1 && strncmp(to_show+strlen(to_show)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
+								highlight = 1;
+								comment = 0;
+							}
+							
+							if (comment_suf)
+							if (comment == 1 && strncmp(working+strlen(working)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
+								highlight = 1;
+								comment = 0;
+							}
+							
+							free(pre);
+							free(suf);
+							
+						} else if (!comment || group == 6) {
+							if (strcmp(compare, "*num*") == 0) {
+								if (strspn(working, "0123456789Lfd") == strlen(working)) {
+									highlight = 1;
+								} else {
+									highlight = 0;
+								}
+							} else if (strcmp(compare, "*string*") == 0) {
+								if (working[0] == '\"' && working[strlen(working)-1] == '\"') {
+									highlight = 1;
+								} else 	if (working[0] == '\'' && working[strlen(working)-1] == '\'') {
+									highlight = 1;
+								} else {
+									highlight = 0;
+								}
+							} else if (strcmp(compare, working) == 0) {
 								highlight = 1;
 							} else {
 								highlight = 0;
 							}
-						} else if (strcmp(compare, "*string*") == 0) {
-							if (working[0] == '\"' && working[strlen(working)-1] == '\"') {
-								highlight = 1;
-							} else 	if (working[0] == '\'' && working[strlen(working)-1] == '\'') {
-								highlight = 1;
-							} else {
-								highlight = 0;
-							}
-						} else if (strcmp(compare, working) == 0) {
-							highlight = 1;
-						} else {
-							highlight = 0;
 						}
 						
 						
@@ -274,9 +325,15 @@ void setText() {
 							attron(COLOR_PAIR(10+group));
 							attron(A_BOLD);
 							printw("%s", working);
-							attron(COLOR_PAIR(1));
-							attroff(A_BOLD);
-							printw("%c", str[i]);
+							if (!comment) {
+								attron(COLOR_PAIR(1));
+								attroff(A_BOLD);
+								printw("%c", str[i]);
+							} else {
+								printw("%c", str[i]);
+								attron(COLOR_PAIR(1));
+								attroff(A_BOLD);
+							}
 							found = true;
 							break;
 						}
