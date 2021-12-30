@@ -530,7 +530,7 @@ void down() {
 		}
 	}
 	
-	if (pos > strlen(text)) pos = strlen(text);
+	if (pos > strlen(text)+1) pos = strlen(text)+1;
 	
 	int y, x;
 	getmaxyx(win, y, x);
