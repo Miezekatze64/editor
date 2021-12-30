@@ -142,7 +142,15 @@ int main(int argc, char **argv_in) {
 		refresh();
 	}
 	clear();
+	curs_set(1);
 	endwin();
+	
+	#ifdef WIN_32_OS
+	system("cls");
+	#elif LINUX_OS
+	system("clear");
+	#endif
+	
 	return 0;
 }
 
