@@ -13,6 +13,7 @@
 #define SYNLEN 8
 
 int pos = 0;
+int selection_start = 0, selection_end = 0;
 int line_off = 0;
 
 volatile sig_atomic_t stop;
@@ -41,6 +42,8 @@ void mv_line(size_t count);
 void setempty();
 int *cursorpos();
 void loadsyntax();
+void show(char *string, int color, int position);
+void showc(char c, int color, int position);
 
 /* string functions */
 
@@ -109,6 +112,8 @@ int main(int argc, char **argv_in) {
 	init_pair(15, COLOR_YELLOW, COLOR_BLACK);	//syntax group 5
 	init_pair(16, COLOR_MAGENTA, COLOR_BLACK);	//syntax group 6
 	init_pair(17, COLOR_WHITE, COLOR_YELLOW);	//syntax group 7
+	
+	init_pair(20, COLOR_BLACK, COLOR_WHITE);	//selection
 	
 	while(!stop) {
 		erase();
@@ -243,157 +248,171 @@ void setempty() {
 }
 
 void setText() {
-	if (syntax[0] != NULL) {
-		char *str = getText();
-		char *working = malloc(255);
-		int index = 0;
-		int lines = 0;
-		
-		int maxlines, maxX;
-		getmaxyx(win, maxlines, maxX);
-		
-		int comment = 0;
-		char *comment_suf = malloc(1);
-		int xpos = 0;
-		for (int i = 0; i < strlen(str); i++) {
-			xpos++;
-			if (!(str[i] == ' ' || str[i] == '\n' || (str[i] == '(' || str[i] == ')' || str[i] == '[' || str[i] == ']' || str[i] == '{' || str[i] == '}' || str[i] == '\t' || str[i] == ';' || str[i] == ':' || str[i] == ',' || str[i] == '='  || str[i] == '.' || i >= strlen(str)-1))) {
-				working[index] = str[i];
-				index++;
-			} else {
-				working[index] = '\0';
-				
-				int y, x;
-				getyx(win, y, x);
-				x++;
-				if (y >= maxlines-1) return;
-				if (str[i] == '\n') {
-					lines++;
-					xpos = 0;
-				}
-				
-				if (xpos > maxX) {
-					xpos -= maxX+1;
-					lines++;
-				}
-		
-
-				char *to_show = malloc(strlen(working)+4);
-				memcpy(to_show, working, strlen(working));
-				to_show[index] = str[i];
-				to_show[index+1] = '\0';
-				index = 0;
-				
-				bool found = false;
-				int highlight = 0;
-				
-				for (int group = 0; group < SYNLEN; group++) {
-					highlight = 0;
-					for (int j = 0; j < syntax_size[group]; j++) {
-						char *compare = syntax[group][j];
+	char *str = getText();
+	char *working = malloc(255);
+	int index = 0;
+	int lines = 0;
+	
+	int maxlines, maxX;
+	getmaxyx(win, maxlines, maxX);
+	
+	int comment = 0;
+	char *comment_suf = malloc(1);
+	int xpos = 0;
+	for (int i = 0; i < strlen(str); i++) {
+		xpos++;
+		if (!(str[i] == ' ' || str[i] == '\n' || (str[i] == '(' || str[i] == ')' || str[i] == '[' || str[i] == ']' || str[i] == '{' || str[i] == '}' || str[i] == '\t' || str[i] == ';' || str[i] == ':' || str[i] == ',' || str[i] == '='  || str[i] == '.' || i >= strlen(str)-1))) {
+			working[index] = str[i];
+			index++;
+		} else {
+			working[index] = '\0';
+			
+			int y, x;
+			getyx(win, y, x);
+			x++;
+			if (y >= maxlines-1) return;
+			if (str[i] == '\n') {
+				lines++;
+				xpos = 0;
+			}
+			
+			if (xpos > maxX) {
+				xpos -= maxX+1;
+				lines++;
+			}
+	
+			char *to_show = malloc(strlen(working)+4);
+			memcpy(to_show, working, strlen(working));
+			to_show[index] = str[i];
+			to_show[index+1] = '\0';
+			index = 0;
+			
+			bool found = false;
+			int highlight = 0;
+			
+			for (int group = 0; group < SYNLEN; group++) {
+				highlight = 0;
+				for (int j = 0; j < syntax_size[group]; j++) {
+					char *compare = syntax[group][j];
+					
+					if (strchr(compare, '?') != NULL) {
+						char *pre = malloc(strlen(compare));
+						char *suf = malloc(strlen(compare));
 						
-						if (strchr(compare, '?') != NULL) {
-							char *pre = malloc(strlen(compare));
-							char *suf = malloc(strlen(compare));
-							
-							int position = (int)(strchr(compare, '?')-compare);
-							for (int ctpos = 0; ctpos < strlen(compare)+1; ctpos++) {
-								if (ctpos < position) {
-									pre[ctpos] = compare[ctpos];
-								} else if (ctpos == position) {
-									pre[ctpos] = '\0';
-								} else if (ctpos <= strlen(compare)) {
-									if (position == strlen(compare)-1) {
-										suf[ctpos-position-1] = '\n';
-										suf[ctpos-position] = '\0';
-									} else {
-										suf[ctpos-position-1] = compare[ctpos];
-									}
+						int position = (int)(strchr(compare, '?')-compare);
+						for (int ctpos = 0; ctpos < strlen(compare)+1; ctpos++) {
+							if (ctpos < position) {
+								pre[ctpos] = compare[ctpos];
+							} else if (ctpos == position) {
+								pre[ctpos] = '\0';
+							} else if (ctpos <= strlen(compare)) {
+								if (position == strlen(compare)-1) {
+									suf[ctpos-position-1] = '\n';
+									suf[ctpos-position] = '\0';
 								} else {
-									suf[ctpos-position-1] = '\0';
+									suf[ctpos-position-1] = compare[ctpos];
 								}
+							} else {
+								suf[ctpos-position-1] = '\0';
 							}
-							
-							if (strncmp(working, pre, strlen(pre)) == 0) {
-								comment = 1;
-								comment_suf = copy(suf);
-							}
-							if(comment == 1) {
-								highlight = 1;
-							}
-							
-							if (comment_suf)
-							if (comment == 1 && strncmp(to_show+strlen(to_show)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
-								highlight = 1;
-								comment = 0;
-							}
-							
-							if (comment_suf)
-							if (comment == 1 && strncmp(working+strlen(working)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
-								highlight = 1;
-								comment = 0;
-							}
-							
-							free(pre);
-							free(suf);
-							
-						} else if (!comment || group == 6) {
-							if (strcmp(compare, "*num*") == 0) {
-								if (strspn(working, "-0123456789Lfd") == strlen(working)) {
-									highlight = 1;
-								} else {
-									highlight = 0;
-								}
-							} else if (strcmp(compare, "*string*") == 0) {
-								if (working[0] == '\"' && working[strlen(working)-1] == '\"') {
-									highlight = 1;
-								} else 	if (working[0] == '\'' && working[strlen(working)-1] == '\'') {
-									highlight = 1;
-								} else {
-									highlight = 0;
-								}
-							} else if (strcmp(compare, working) == 0) {
+						}
+						
+						if (strncmp(working, pre, strlen(pre)) == 0) {
+							comment = 1;
+							comment_suf = copy(suf);
+						}
+						if(comment == 1) {
+							highlight = 1;
+						}
+						
+						if (comment_suf)
+						if (comment == 1 && strncmp(to_show+strlen(to_show)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
+							highlight = 1;
+							comment = 0;
+						}
+						
+						if (comment_suf)
+						if (comment == 1 && strncmp(working+strlen(working)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
+							highlight = 1;
+							comment = 0;
+						}
+						
+						free(pre);
+						free(suf);
+						
+					} else if (!comment || group == 6) {
+						if (strcmp(compare, "*num*") == 0) {
+							if (strspn(working, "-0123456789Lfd") == strlen(working)) {
 								highlight = 1;
 							} else {
 								highlight = 0;
 							}
-						}
-						
-						
-						if (highlight == 1) {
-							attron(COLOR_PAIR(10+group));
-							attron(A_BOLD);
-							printw("%s", working);
-							if (!comment) {
-								attron(COLOR_PAIR(1));
-								attroff(A_BOLD);
-								printw("%c", str[i]);
+						} else if (strcmp(compare, "*string*") == 0) {
+							if (working[0] == '\"' && working[strlen(working)-1] == '\"') {
+								highlight = 1;
+							} else 	if (working[0] == '\'' && working[strlen(working)-1] == '\'') {
+								highlight = 1;
 							} else {
-								printw("%c", str[i]);
-								attron(COLOR_PAIR(1));
-								attroff(A_BOLD);
+								highlight = 0;
 							}
-							found = true;
-							break;
+						} else if (strcmp(compare, working) == 0) {
+							highlight = 1;
+						} else {
+							highlight = 0;
 						}
 					}
-					if (found) break;
+					
+					
+					if (highlight == 1) {
+						show(working, 10+group, i);
+						if (!comment) {
+							showc(str[i], 0, i);
+						} else {
+							showc(str[i], 10+group, i);
+						}
+						found = true;
+						break;
+					}
 				}
-				if (!found) printw("%s", to_show);
-				free(to_show);
-				working = malloc(255);
-			}			
-		}
-		free(str);
-	} else {
-		printw("%s", text);
+				if (found) break;
+			}
+			if (!found) show(to_show, 0, i);
+			free(to_show);
+			working = malloc(255);
+		}			
 	}
-
-	int maxX, maxY;
-	maxX++;
-	getmaxyx(win, maxY, maxX);
-	move(maxY-1, 0);
+	free(str);	
+	move(maxlines-1, 0);
 	clrtoeol();
+}
+
+void show(char *string, int color, int position) {
+	for (int i = 0; i < strlen(string); i++) {
+		showc(string[i], color, position-strlen(string)+i);
+	}
+}
+
+void showc(char c, int color, int position) {
+/*	int first, second;
+	if (selection_start < selection_end) {
+		first = selection_start;
+		second = selection_end;
+	} else {
+		first = selection_end;
+		second = selection_start;		
+	}*/
+//	endwin();
+//	printf("first: %d, second: %d", first, second);
+//	exit(1);
+/*	if ((first <= position) && (position < second)) {
+		attron(COLOR_PAIR(20));
+	} else {
+*/		if (color != 0) attron(COLOR_PAIR(color));
+		if (color != 0) attron(A_BOLD);
+//	}
+	printw("%c", c);
+	attroff(COLOR_PAIR(color));
+	attroff(A_BOLD);
 }
 
 char *getText() {
@@ -587,6 +606,13 @@ void nexline() {
 		add('\t');
 }
 
+void select_right() {
+	selection_end++;
+}
+
+void select_left() {
+	selection_end--;
+}
 
 void handle_key(int key) {
 	char ch = (char)key;
@@ -660,33 +686,47 @@ void handle_key(int key) {
 		break;
 	case '\n':
 		nexline();
+		selection_start = pos;
 		break;
 	case KEY_BACKSPACE:
 		del();
+		selection_start = pos;
 		break;
 	case KEY_LEFT:
 		if (pos > 0) pos--;
+		selection_start = pos;
 		break;
 	case KEY_RIGHT:
 		if(pos < strlen(text)) pos++;
+		selection_start = pos;
+		break;
+	case KEY_SRIGHT:
+		select_right();
+		break;
+	case KEY_SLEFT:
+		select_left();
 		break;
 	case KEY_UP:
 		up();
+		selection_start = pos;
 		break;
 	case KEY_DOWN:
 		down();
+		selection_start = pos;
 		break;
 	case KEY_END:
 		end();
 		break;
 	case KEY_HOME:
 		begin();
+		selection_start = pos;
 		break;
 	case KEY_DC:
 		if (pos < strlen(text)-1) {
 			pos++;
 			del();
 		}
+		selection_start = pos;
 		break;
 	case KEY_NPAGE:
         for(int i = 0; i < 10; i++) {
@@ -695,6 +735,7 @@ void handle_key(int key) {
 				mv_line(1);
 			}
         }
+		selection_start = pos;
 		break;
 	case KEY_PPAGE:
         for (int i = 0; i < 10; i++) {
@@ -703,6 +744,7 @@ void handle_key(int key) {
 				mv_line(-1);
 			}
         }
+		selection_start = pos;
 		break;
 	default:
 		break;
