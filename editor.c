@@ -321,22 +321,22 @@ void setText() {
 							comment = 1;
 							comment_suf = copy(suf);
 						}
-						if(comment == 1) {
+						if(comment == 1 && (suf != NULL && strcmp(comment_suf, suf) == 0)) {
 							highlight = 1;
 						}
 						
 						if (comment_suf)
-						if (comment == 1 && strncmp(to_show+strlen(to_show)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
+						if (strcmp(comment_suf, suf) == 0 && comment == 1 && strncmp(to_show+strlen(to_show)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
 							highlight = 1;
 							comment = 0;
 						}
 						
 						if (comment_suf)
-						if (comment == 1 && strncmp(working+strlen(working)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
+						if (strcmp(comment_suf, suf) == 0 && comment == 1 && strncmp(working+strlen(working)-strlen(comment_suf), comment_suf, strlen(comment_suf)) == 0) {
 							highlight = 1;
 							comment = 0;
 						}
-						
+
 						free(pre);
 						free(suf);
 						
