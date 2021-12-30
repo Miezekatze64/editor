@@ -117,6 +117,7 @@ int main(int argc, char **argv_in) {
 	
 	while(!stop) {
 		erase();
+		set_tabsize(4);
 		attron(COLOR_PAIR(3));
 		attron(A_BOLD);
 		setempty();
