@@ -42,6 +42,17 @@ void setempty();
 int *cursorpos();
 void loadsyntax();
 
+/* string functions */
+
+char *copy(char *from) {
+	char *to = malloc(strlen(from));
+	memcpy(to, from, strlen(from));
+	to[strlen(from)] = '\0';
+	return to;
+}
+
+/* main funtion */
+
 int main(int argc, char **argv_in) {
 	argv = argv_in;
 	if (argc > 1) {
@@ -134,18 +145,14 @@ void loadsyntax() {
 		return;
 	}
 	
-	
 	char *lang = malloc(1);
 	lang[0] = '\0';
+	
 	if (strchr(filename, '.') == NULL) {
-		lang = malloc(strlen(filename));
-		memcpy(lang, filename, strlen(filename));
-		lang[strlen(filename)] = '\0';
+		lang = copy(filename);
 	} else for (int i = strlen(filename); i > 0; i--) {
 		if (filename[i] == '.') {
-			lang = malloc(strlen(filename)-i);
-			memcpy(lang, filename+i+1, strlen(filename)-i);
-			lang[strlen(filename)-i] = '\0';
+			lang = copy(filename+i+1);
 			break;
 		}
 	}
@@ -153,8 +160,8 @@ void loadsyntax() {
 	if (strlen(lang) == 0) return;
 	
 	char *langfile = malloc(strlen(lang)+7+8);
-	
 	char *path = malloc(strlen(argv[0]));
+	
 	int index = 0;
 	for (int i = strlen(argv[0])-1; i >= 0; i--) {
 		if (argv[0][i] == '/') {
@@ -166,8 +173,8 @@ void loadsyntax() {
 	memcpy(path, argv[0], index+1);
 	path[index+1] = '\0';
 	
-	langfile[0] = '\0';
 	
+	langfile[0] = '\0';
 	strcat(langfile, path);
 	strcat(langfile, ".syntax/");
 	strcat(langfile, lang);
@@ -215,8 +222,7 @@ void loadsyntax() {
 			} else {
 				working[index] = '\0';
 				index = 0;
-				syntax[group][synindex] = (char *)malloc(10);
-				memcpy(syntax[group][synindex], working, strlen(working)+1);
+				syntax[group][synindex] = copy(working);
 				working = malloc(20);
 				syntax_size[group]++;
 				synindex++;
@@ -261,7 +267,6 @@ void setText() {
 				getyx(win, y, x);
 				x++;
 				if (y >= maxlines-1) return;
-//				printf("%d", y);
 				if (str[i] == '\n') {
 					lines++;
 					xpos = 0;
@@ -311,7 +316,7 @@ void setText() {
 							
 							if (strncmp(working, pre, strlen(pre)) == 0) {
 								comment = 1;
-								memcpy(comment_suf, suf, strlen(suf)+1);
+								comment_suf = copy(suf);
 							}
 							if(comment == 1) {
 								highlight = 1;
