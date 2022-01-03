@@ -530,7 +530,7 @@ void down() {
 			chars++;
 		} while (pos >= 0 && text[pos] != '\n');
 		pos++;
-		while (/*pos < strlen(text) &&*/ text[pos] != '\n') {
+		while (pos <= strlen(text) && text[pos] != '\n') {
 			pos++;
 		}
 		for (int i = 0; i < chars; i++) {
@@ -539,12 +539,12 @@ void down() {
 		}
 	}
 	
-//	if (pos > strlen(text)+1) pos = strlen(text)+1;
+	if (pos > strlen(text)) pos = strlen(text);
 	
 	int y, x;
 	getmaxyx(win, y, x);
 	x++;
-	if (cursorpos()[0] >= y) mv_line(1);
+	if (cursorpos()[0] >= y-1) mv_line(1);
 }
 
 void end() {
