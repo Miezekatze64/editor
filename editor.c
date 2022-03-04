@@ -61,8 +61,8 @@ int main(int argc, char **argv_in) {
 	if (argc > 1) {
 		if (argv[1][0] != '-') {
 			//parse as file
-			char* str = argv[1];
-			
+			char* str = argv[1]; 
+
 			filename = malloc(strlen(str)+1);
 			memcpy(filename, str, strlen(str)+1);
 			
@@ -145,11 +145,11 @@ int main(int argc, char **argv_in) {
 	curs_set(1);
 	endwin();
 	
-	#ifdef WIN_32_OS
+#ifdef WIN_32_OS
 	system("cls");
-	#elif LINUX_OS
+#elif LINUX_OS
 	system("clear");
-	#endif
+#endif
 	
 	return 0;
 }
