@@ -5,7 +5,6 @@
 #include <string.h>
 #include <signal.h>
 
-
 #ifndef CTRL
 #define CTRL(c) ((c) & 037)
 #endif
@@ -217,7 +216,7 @@ void loadsyntax() {
 	
 	char *working = malloc(1);
 	
-	int i = 0;
+	size_t i = 0;
 	for (int group = 0; group < SYNLEN; group++) {
 		int index = 0;
 		int synindex = 0;
@@ -268,7 +267,7 @@ void setText() {
 	int comment = 0;
 	char *comment_suf = malloc(1);
 	int xpos = 0;
-	for (int i = 0; i < strlen(str); i++) {
+	for (size_t i = 0; i < strlen(str); i++) {
 		xpos++;
 		if (!(str[i] == ' ' || str[i] == '\n' || (str[i] == '(' || str[i] == ')' || str[i] == '[' || str[i] == ']' || str[i] == '{' || str[i] == '}' || str[i] == '\t' || str[i] == ';' || str[i] == ':' || str[i] == ',' || str[i] == '='  || str[i] == '.' || i >= strlen(str)-1))) {
 			working[index] = str[i];
@@ -308,8 +307,8 @@ void setText() {
 						char *pre = malloc(strlen(compare));
 						char *suf = malloc(strlen(compare));
 						
-						int position = (int)(strchr(compare, '?')-compare);
-						for (int ctpos = 0; ctpos < strlen(compare)+1; ctpos++) {
+						size_t position = (size_t)(strchr(compare, '?')-compare);
+						for (size_t ctpos = 0; ctpos < strlen(compare)+1; ctpos++) {
 							if (ctpos < position) {
 								pre[ctpos] = compare[ctpos];
 							} else if (ctpos == position) {
@@ -396,7 +395,7 @@ void setText() {
 }
 
 void show(char *string, int color, int position) {
-	for (int i = 0; i < strlen(string); i++) {
+	for (size_t i = 0; i < strlen(string); i++) {
 		showc(string[i], color, position-strlen(string)+i);
 	}
 }
@@ -422,6 +421,8 @@ void showc(char c, int color, int position) {
 	printw("%c", c);
 	attroff(COLOR_PAIR(color));
 	attroff(A_BOLD);
+
+    (void) position;
 }
 
 char *getText() {
@@ -436,10 +437,10 @@ void add(char c) {
 	char *new_array = malloc(strlen(text)+10 * sizeof(char));
 	new_array[strlen(text)+2] = '\0';
 	
-	for (int i = 0; i < strlen(new_array)+1; i++) {
-		if (i < pos) {
+	for (size_t i = 0; i < strlen(new_array)+1; i++) {
+		if (i < (size_t)pos) {
 			new_array[i] = text[i];
-		} else if (i > pos) {
+		} else if (i > (size_t)pos) {
 			new_array[i] = text[i-1];
 		} else {
 			new_array[i] = c;
@@ -458,8 +459,7 @@ int *cursorpos() {
 	int maxX, maxY;
 	getmaxyx(win, maxY, maxX);
 	maxY++;
-	int i;
-	for (i = get_offset(); i < pos; i++) {
+	for (size_t i = get_offset(); (int)i < pos; i++) {
 		if (text[i] == '\n' || x >= maxX-1) {
 			y++;
 			x = 0;
@@ -472,7 +472,7 @@ int *cursorpos() {
 				x++;
 		}
 	}
-	int *rt = malloc(2);
+	int *rt = malloc(2 * sizeof(int));
 	rt[0] = y;
 	rt[1] = x;
 	return rt;
@@ -487,10 +487,10 @@ void del() {
 	if (pos <= 0) return;
 	char *new_array = malloc((strlen(text)) * sizeof(char));
 
-	for (int i = 0; i < strlen(new_array)+1; i++) {
-		if (i < pos-1) {
+	for (size_t i = 0; i < strlen(new_array)+1; i++) {
+		if (i < (size_t)pos-1) {
 			new_array[i] = text[i];
-		} else if (i >= pos-1) {
+		} else if (i >= (size_t)pos-1) {
 			new_array[i] = text[i+1];
 		}
 	}
@@ -524,13 +524,13 @@ void up() {
 
 void down() {
 	int chars = 0;
-	if (pos <= strlen(text))  {
+	if (pos <= (int)strlen(text))  {
 		do {
 			pos--;
 			chars++;
 		} while (pos >= 0 && text[pos] != '\n');
 		pos++;
-		while (pos <= strlen(text) && text[pos] != '\n') {
+		while (pos <= (int)strlen(text) && text[pos] != '\n') {
 			pos++;
 		}
 		for (int i = 0; i < chars; i++) {
@@ -539,7 +539,7 @@ void down() {
 		}
 	}
 	
-	if (pos > strlen(text)) pos = strlen(text);
+	if (pos > (int)strlen(text)) pos = strlen(text);
 	
 	int y, x;
 	getmaxyx(win, y, x);
@@ -548,7 +548,7 @@ void down() {
 }
 
 void end() {
-	while (pos < strlen(text) && text[pos] != '\n') {
+	while (pos < (int)strlen(text) && text[pos] != '\n') {
 		pos++;
 	}
 }
@@ -564,7 +564,7 @@ void begin() {
 int get_offset() {
 	size_t off = 0;
 	for (int i = 0; i < line_off; i++) {
-		for (int i = off; i < strlen(text); i++) {
+		for (int i = off; i < (int)strlen(text); i++) {
 			if (text[i] == '\n') {
 				off = i+1;
 				break;
@@ -635,7 +635,7 @@ void handle_key(int key) {
 			save_as = false;
 			message = NULL;
 			return;
-		} else if (ch == KEY_BACKSPACE || ch == CTRL('g')) {
+		} else if (key == KEY_BACKSPACE || ch == CTRL('g')) {
 			if (filename != NULL) {
 				int length;
 				if (message == NULL) {
@@ -706,7 +706,7 @@ void handle_key(int key) {
 		selection_start = pos;
 		break;
 	case KEY_RIGHT:
-		if(pos < strlen(text)) pos++;
+		if(pos < (int)strlen(text)) pos++;
 		selection_start = pos;
 		break;
 	case KEY_SRIGHT:
@@ -731,7 +731,7 @@ void handle_key(int key) {
 		selection_start = pos;
 		break;
 	case KEY_DC:
-		if (pos < strlen(text)-1) {
+		if (pos < (int)strlen(text)-1) {
 			pos++;
 			del();
 		}
@@ -739,7 +739,7 @@ void handle_key(int key) {
 		break;
 	case KEY_NPAGE:
         for(int i = 0; i < 10; i++) {
-    		if (pos < strlen(text)-10) {
+    		if (pos < (int)strlen(text)-10) {
 				down();
 				mv_line(1);
 			}
