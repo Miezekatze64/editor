@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <signal.h>
+#include <errno.h>
 
 #ifndef CTRL
 #define CTRL(c) ((c) & 037)
@@ -53,8 +54,8 @@ char *copy(char *from) {
 	return to;
 }
 
-/* main funtion */
 
+/* main funtion */
 int main(int argc, char **argv_in) {
 	argv = argv_in;
 	if (argc > 1) {
@@ -189,7 +190,7 @@ void loadsyntax() {
 	
 	langfile[0] = '\0';
 	strcat(langfile, path);
-	strcat(langfile, ".syntax/");
+	strcat(langfile, "syntax/");
 	strcat(langfile, lang);
 	strcat(langfile, ".syntax");
 
@@ -208,7 +209,7 @@ void loadsyntax() {
 		fclose(file2);
 		input[fsize] = '\0';
 	} else {
-		perror("File error");
+		printf("File error: %s: %s", langfile, strerror(errno));
 	}
 		
 	free(lang);

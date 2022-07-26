@@ -1,7 +1,0 @@
-#?|
-function|alias|
-if|fi|else|elif|case|esac|while|done|do|then|in|return|break|continue|
-true|false|
--? |--? |
-*num*|"?"|'?'|
-cat|ls|echo|printf|shopt|unset|chroot|chmod|PS1|test|which|command|dir|vdir|
